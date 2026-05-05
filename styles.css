@@ -1,0 +1,46 @@
+:root {
+  color-scheme: light dark;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 24px;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+}
+
+video {
+  width: 100%;
+  max-height: 360px;
+  background: #111;
+  border-radius: 8px;
+}
+
+.panel {
+  display: grid;
+  gap: 8px;
+}
+
+button {
+  padding: 10px 14px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+input {
+  padding: 8px;
+}
+
+.logs pre {
+  min-height: 120px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(127, 127, 127, 0.12);
+  overflow: auto;
+}

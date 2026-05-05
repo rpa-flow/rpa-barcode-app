@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leitor de Código de Barras</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Leitor de Código de Barras</h1>
+      <p class="hint">Compatível com Android (Chrome/Edge/Firefox) usando fallback ZXing.</p>
+
+      <video id="preview" autoplay playsinline muted></video>
+
+      <section class="panel">
+        <button id="startBtn">Iniciar câmera</button>
+        <button id="stopBtn" disabled>Parar câmera</button>
+      </section>
+
+      <section class="panel">
+        <label for="endpointInput">Endpoint HTTP</label>
+        <input id="endpointInput" type="url" value="https://httpbin.org/post" />
+      </section>
+
+      <section class="panel result">
+        <strong>Último código lido:</strong>
+        <span id="lastCode">Nenhum</span>
+      </section>
+
+      <section class="panel logs">
+        <strong>Log</strong>
+        <pre id="logOutput"></pre>
+      </section>
+    </main>
+
+    <script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
