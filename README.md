@@ -2,25 +2,85 @@
 
 Aplicativo de leitura de código de barras com câmera + POST HTTP.
 
-## Instalar no Android como app (PWA)
+## Rodando localmente (desktop)
 
-1. Rode localmente:
+1. Inicie um servidor HTTP na pasta do projeto:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-2. Exponha com HTTPS (recomendado para instalação):
+2. Abra no navegador:
 
-- Opção simples: `npx localtunnel --port 8080`
-- Ou publique em Vercel/Netlify/GitHub Pages.
+```text
+http://localhost:8080
+```
 
-3. No Android (Chrome), abra a URL HTTPS e toque em **Instalar aplicativo**.
+## Rodando no Android
 
-4. Depois de instalado, abra pelo ícone na tela inicial (sem precisar digitar IP).
+### Opção A (teste rápido na mesma rede)
 
-## Observações
+1. Com o servidor rodando no computador, descubra seu IP local (ex.: `192.168.0.25`).
+2. No Android, na mesma rede Wi‑Fi, abra:
+
+```text
+http://192.168.0.25:8080
+```
+
+> Para câmera funcionar, conceda permissão quando o navegador pedir.
+
+### Opção B (instalar como app PWA)
+
+1. Publique o app com **HTTPS** (Vercel, Netlify, GitHub Pages etc.).
+2. Abra a URL HTTPS no Chrome Android.
+3. Toque em **Instalar aplicativo** (ou menu do Chrome > Instalar app).
+4. O app ficará na tela inicial e abrirá em modo standalone.
+
+---
+
+## Como gerar APK (Android)
+
+A forma recomendada é usar **TWA (Trusted Web Activity)** com `bubblewrap`, empacotando a versão publicada em HTTPS.
+
+### Pré-requisitos
+
+- Node.js 18+
+- JDK 17+
+- Android SDK (com `adb` e `build-tools`)
+- App já publicado em HTTPS (ex.: `https://seu-app.com`)
+
+### 1) Instalar Bubblewrap
+
+```bash
+npm i -g @bubblewrap/cli
+```
+
+### 2) Inicializar projeto Android
+
+```bash
+bubblewrap init --manifest https://seu-app.com/manifest.webmanifest
+```
+
+> Preencha `applicationId` (ex.: `com.suaempresa.barcodeapp`), nome do app e configuração de assinatura.
+
+### 3) Gerar APK
+
+```bash
+bubblewrap build
+```
+
+O APK será gerado na pasta `app/build/outputs/apk/`.
+
+### 4) Instalar APK no dispositivo (opcional)
+
+```bash
+adb install app/build/outputs/apk/release/app-release-signed.apk
+```
+
+---
+
+## Observações técnicas
 
 - Usa `BarcodeDetector` quando disponível.
 - Usa fallback `ZXing` automaticamente no Android.
-- O app registra `service-worker` para funcionamento como PWA.
+- Registra `service-worker` para experiência PWA instalável.
