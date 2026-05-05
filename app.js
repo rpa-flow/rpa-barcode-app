@@ -1,10 +1,12 @@
 const preview = document.getElementById('preview');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
+const installBtn = document.getElementById('installBtn');
 const endpointInput = document.getElementById('endpointInput');
 const lastCode = document.getElementById('lastCode');
 const logOutput = document.getElementById('logOutput');
 
+let deferredInstallPrompt;
 let stream;
 let scanning = false;
 let rafId;
@@ -18,12 +20,34 @@ function log(message) {
   logOutput.textContent = `[${now}] ${message}\n` + logOutput.textContent;
 }
 
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').then(() => {
+    log('Service worker ativo. App pode ser instalado.');
+  });
+}
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  installBtn.hidden = false;
+});
+
+installBtn.addEventListener('click', async () => {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  installBtn.hidden = true;
+});
+
+window.addEventListener('appinstalled', () => {
+  installBtn.hidden = true;
+  log('Aplicativo instalado com sucesso.');
+});
+
 async function sendCode(code) {
   const endpoint = endpointInput.value.trim();
-  if (!endpoint) {
-    log('Endpoint vazio.');
-    return;
-  }
+  if (!endpoint) return log('Endpoint vazio.');
 
   try {
     const response = await fetch(endpoint, {
@@ -31,7 +55,6 @@ async function sendCode(code) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code, scannedAt: new Date().toISOString() })
     });
-
     if (!response.ok) throw new Error(`Falha HTTP: ${response.status}`);
     log(`Código enviado com sucesso: ${code}`);
   } catch (error) {
@@ -49,23 +72,18 @@ function onDetected(code) {
 
 async function scanLoop() {
   if (!scanning || !detector) return;
-
   try {
     const barcodes = await detector.detect(preview);
     if (barcodes.length > 0) onDetected(barcodes[0].rawValue);
   } catch (error) {
     log(`Erro na leitura: ${error.message}`);
   }
-
   rafId = requestAnimationFrame(scanLoop);
 }
 
 async function startWithBarcodeDetector() {
-  detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf'] });
-  stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: { ideal: 'environment' } },
-    audio: false
-  });
+  detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'] });
+  stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
   preview.srcObject = stream;
   scanning = true;
   log('Leitura via BarcodeDetector iniciada.');
@@ -73,22 +91,15 @@ async function startWithBarcodeDetector() {
 }
 
 async function startWithZXing() {
-  if (!window.ZXingBrowser) {
-    throw new Error('ZXing não carregou. Verifique sua conexão de internet.');
-  }
-
+  if (!window.ZXingBrowser) throw new Error('ZXing não carregou.');
   zxingReader = new window.ZXingBrowser.BrowserMultiFormatReader();
   const devices = await window.ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
   const backCamera = devices.find((d) => /back|rear|traseira|environment/i.test(d.label));
   const deviceId = backCamera?.deviceId || devices[0]?.deviceId;
-
   if (!deviceId) throw new Error('Nenhuma câmera encontrada.');
 
-  zxingControls = await zxingReader.decodeFromVideoDevice(deviceId, preview, (result, error) => {
+  zxingControls = await zxingReader.decodeFromVideoDevice(deviceId, preview, (result) => {
     if (result) onDetected(result.getText());
-    if (error && error.name !== 'NotFoundException') {
-      log(`Aviso ZXing: ${error.message}`);
-    }
   });
 
   scanning = true;
@@ -98,11 +109,8 @@ async function startWithZXing() {
 async function startCamera() {
   try {
     startBtn.disabled = true;
-    if ('BarcodeDetector' in window) {
-      await startWithBarcodeDetector();
-    } else {
-      await startWithZXing();
-    }
+    if ('BarcodeDetector' in window) await startWithBarcodeDetector();
+    else await startWithZXing();
     stopBtn.disabled = false;
   } catch (error) {
     startBtn.disabled = false;
@@ -114,13 +122,9 @@ async function startCamera() {
 function stopCamera() {
   scanning = false;
   cancelAnimationFrame(rafId);
-
-  if (zxingControls) {
-    zxingControls.stop();
-    zxingControls = null;
-  }
-
+  if (zxingControls) zxingControls.stop();
   if (zxingReader?.reset) zxingReader.reset();
+  zxingControls = null;
 
   if (stream) {
     stream.getTracks().forEach((track) => track.stop());

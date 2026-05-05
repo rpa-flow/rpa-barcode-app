@@ -1,22 +1,26 @@
 # rpa-barcode-app
 
-Aplicativo simples para:
+Aplicativo de leitura de código de barras com câmera + POST HTTP.
 
-1. Abrir a câmera do dispositivo.
-2. Ler código de barras.
-3. Enviar o código lido por HTTP `POST` para um endpoint configurável.
+## Instalar no Android como app (PWA)
 
-## Compatibilidade Android
-
-- **Primeira opção:** `BarcodeDetector` (quando disponível).
-- **Fallback automático:** `ZXing` via CDN (funciona bem no Android).
-
-## Como usar
+1. Rode localmente:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-Abra no celular Android em `http://SEU_IP_LOCAL:8080` (mesma rede Wi-Fi).
+2. Exponha com HTTPS (recomendado para instalação):
 
-> Em Android, permita acesso à câmera no navegador.
+- Opção simples: `npx localtunnel --port 8080`
+- Ou publique em Vercel/Netlify/GitHub Pages.
+
+3. No Android (Chrome), abra a URL HTTPS e toque em **Instalar aplicativo**.
+
+4. Depois de instalado, abra pelo ícone na tela inicial (sem precisar digitar IP).
+
+## Observações
+
+- Usa `BarcodeDetector` quando disponível.
+- Usa fallback `ZXing` automaticamente no Android.
+- O app registra `service-worker` para funcionamento como PWA.
