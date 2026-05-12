@@ -56,15 +56,17 @@ async function loadEndpointFromEnv() {
 
 function readQueue() {
   try {
-    return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
+    const parsed = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
 }
 
 function writeQueue(queue) {
-  localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
-  offlineWarning.hidden = queue.length < WARNING_THRESHOLD;
+  const safeQueue = Array.isArray(queue) ? queue : [];
+  localStorage.setItem(QUEUE_KEY, JSON.stringify(safeQueue));
+  offlineWarning.hidden = safeQueue.length < WARNING_THRESHOLD;
 }
 
 function queuePayload(payload) {
@@ -266,5 +268,6 @@ sendBtn.addEventListener('click', sendCode);
 
 window.addEventListener('online', flushQueue);
 
-writeQueue(readQueue());
+const initialQueue = readQueue();
+writeQueue(initialQueue);
 loadEndpointFromEnv().then(flushQueue);
