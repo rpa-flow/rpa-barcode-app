@@ -14,43 +14,36 @@ body {
 }
 
 .container {
-  max-width: 720px;
+  width: min(100%, 720px);
   margin: 0 auto;
   display: grid;
   gap: 14px;
-  padding: 20px;
+  padding: clamp(12px, 3vw, 20px);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(2px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
 }
 
-h1 {
-  margin: 0;
-}
-
-.hint {
-  margin: 0;
-  opacity: 0.85;
-}
+h1 { margin: 0; }
+.hint { margin: 0; opacity: 0.85; }
 
 video {
   width: 100%;
   max-height: 360px;
+  object-fit: cover;
   background: #111;
   border-radius: 12px;
   border: 2px solid rgba(0, 0, 0, 0.12);
 }
 
-.panel {
-  display: grid;
-  gap: 8px;
-  padding: 12px;
-  border-radius: 10px;
-  background: rgba(127, 127, 127, 0.1);
-}
+.panel { display: grid; gap: 8px; padding: 12px; border-radius: 10px; background: rgba(127, 127, 127, 0.1); }
+.action-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; }
+.read-status { grid-column: 1 / -1; margin: 2px 0 0; font-size: 14px; font-weight: 600; }
 
 button {
+  width: 100%;
+  min-height: 44px;
   padding: 12px 14px;
   border: 0;
   border-radius: 8px;
@@ -60,86 +53,51 @@ button {
   cursor: pointer;
 }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+#stopBtn { background: #444; }
+#sendBtn { background: #0b8a57; display: inline-flex; justify-content: center; align-items: center; gap: 8px; }
+
+.btn-loader {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
 }
 
-#stopBtn {
-  background: #444;
-}
-
-#sendBtn {
-  background: #0b8a57;
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 input {
+  width: 100%;
   padding: 10px;
   border-radius: 8px;
   border: 1px solid rgba(0, 0, 0, 0.2);
   font-size: 15px;
 }
 
-.result span {
-  font-size: 18px;
-  font-weight: 700;
-}
+.result span { font-size: 18px; font-weight: 700; }
+.status p { margin: 0; font-weight: 600; word-break: break-word; }
 
-.status p {
-  margin: 0;
+.feedback-banner {
+  padding: 10px 12px;
+  border-radius: 10px;
   font-weight: 600;
 }
+.feedback-banner.success { background: rgba(50, 168, 82, 0.2); border: 1px solid #2e9b4f; }
+.feedback-banner.error { background: rgba(209, 58, 58, 0.2); border: 1px solid #c92a2a; }
+.feedback-banner.warning { background: rgba(241, 181, 92, 0.35); border: 1px solid #d18818; }
+.feedback-banner.info { background: rgba(45, 109, 246, 0.16); border: 1px solid #2d6df6; }
 
-.offline-warning {
-  border: 1px solid #f1b55c;
-  background: rgba(255, 222, 173, 0.45);
-}
+.offline-warning { border: 1px solid #f1b55c; background: rgba(255, 222, 173, 0.45); }
+.offline-warning p, .history-hint { margin: 0; line-height: 1.4; }
 
-.offline-warning p {
-  margin: 0;
-  line-height: 1.4;
-}
+.history-list { display: grid; gap: 10px; margin-top: 10px; }
+.history-item { display: grid; gap: 4px; padding: 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.7); }
+.retry-btn { width: fit-content; background: #d77b00; }
 
-.read-status {
-  margin: 2px 0 0;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.history-list {
-  display: grid;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.history-item {
-  display: grid;
-  gap: 4px;
-  padding: 8px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.7);
-}
-
-.retry-btn {
-  width: fit-content;
-  background: #d77b00;
-}
-
-
-.app-header {
-  display: grid;
-  gap: 6px;
-}
-
-.app-tab-content {
-  display: grid;
-  gap: 14px;
-}
-
-.history-hint {
-  margin: 0;
-  opacity: 0.8;
-}
+.app-header, .app-tab-content { display: grid; gap: 10px; }
+.history-hint { opacity: 0.8; }
 
 .tab-menu {
   position: sticky;
@@ -153,17 +111,14 @@ input {
   border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.tab-btn {
-  background: #d7ddea;
-  color: #1a1a1a;
+.tab-btn { background: #d7ddea; color: #1a1a1a; }
+.tab-btn.active { background: #2d6df6; color: #fff; }
+
+@media (max-width: 520px) {
+  body { padding: 8px; }
+  .container { border-radius: 12px; }
+  .action-panel { grid-template-columns: 1fr; }
+  .tab-menu { padding: 8px; }
 }
 
-.tab-btn.active {
-  background: #2d6df6;
-  color: #fff;
-}
-
-
-[hidden] {
-  display: none !important;
-}
+[hidden] { display: none !important; }

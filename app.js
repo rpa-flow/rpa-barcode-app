@@ -15,6 +15,7 @@ const scannerTab = document.getElementById('scannerTab');
 const historyTab = document.getElementById('historyTab');
 const scannerTabBtn = document.getElementById('scannerTabBtn');
 const historyTabBtn = document.getElementById('historyTabBtn');
+const feedbackBanner = document.getElementById('feedbackBanner');
 
 let deferredInstallPrompt;
 let stream;
@@ -30,6 +31,7 @@ const QUEUE_KEY = 'pendingBarcodePayloads';
 const WARNING_THRESHOLD = 100;
 const HISTORY_KEY = 'barcodeSendHistory';
 const HISTORY_LIMIT = 10;
+let feedbackTimer;
 
 function createId() {
   if (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function') return globalThis.crypto.randomUUID();
@@ -38,6 +40,26 @@ function createId() {
 
 function setStatus(message) {
   statusOutput.textContent = message;
+}
+
+function showFeedback(message, type = 'info') {
+  if (!feedbackBanner) return;
+  feedbackBanner.textContent = message;
+  feedbackBanner.className = `feedback-banner ${type}`;
+  feedbackBanner.hidden = false;
+
+  clearTimeout(feedbackTimer);
+  feedbackTimer = setTimeout(() => {
+    feedbackBanner.hidden = true;
+  }, 4200);
+}
+
+function setSendLoading(isLoading) {
+  const text = sendBtn.querySelector('.btn-text');
+  const loader = sendBtn.querySelector('.btn-loader');
+  sendBtn.disabled = isLoading;
+  if (text) text.textContent = isLoading ? 'Enviando...' : 'Enviar dados';
+  if (loader) loader.hidden = !isLoading;
 }
 
 
@@ -209,8 +231,16 @@ window.addEventListener('appinstalled', () => {
 });
 
 async function sendCode() {
-  if (!endpoint) return setStatus('Endpoint não configurado. Verifique o .env.');
-  if (!currentCode) return setStatus('Leia um código antes de enviar.');
+  if (!endpoint) {
+    setStatus('Endpoint não configurado. Verifique o .env.');
+    showFeedback('Endpoint não configurado.', 'error');
+    return;
+  }
+  if (!currentCode) {
+    setStatus('Leia um código antes de enviar.');
+    showFeedback('Leia um código antes de enviar.', 'error');
+    return;
+  }
 
   const nomeMotorista = nomeMotoristaInput.value.trim();
   const telefone = telefoneInput.value.trim();
@@ -225,24 +255,27 @@ async function sendCode() {
   };
 
   try {
-    sendBtn.disabled = true;
+    setSendLoading(true);
 
     if (!navigator.onLine) {
       queuePayload(payload);
       addHistoryEntry({ id: createId(), code: currentCode, when: new Date().toLocaleString('pt-BR'), status: 'falha', error: 'Sem internet', payload });
+      showFeedback('Sem internet. Dados salvos para reenvio.', 'warning');
       return;
     }
 
     await postPayload(payload);
     addHistoryEntry({ id: createId(), code: currentCode, when: new Date().toLocaleString('pt-BR'), status: 'enviado', payload });
     setStatus('Dados enviados com sucesso.');
+    showFeedback('Dados enviados com sucesso.', 'success');
     await flushQueue();
   } catch (error) {
     queuePayload(payload);
     addHistoryEntry({ id: createId(), code: currentCode, when: new Date().toLocaleString('pt-BR'), status: 'falha', error: error.message, payload });
     setStatus(`Falha de rede. Dados salvos para reenvio automático. (${error.message})`);
+    showFeedback(`Falha ao enviar: ${error.message}`, 'error');
   } finally {
-    sendBtn.disabled = false;
+    setSendLoading(false);
   }
 }
 
