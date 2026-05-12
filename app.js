@@ -25,8 +25,10 @@ let detector;
 let zxingReader;
 let zxingControls;
 let currentCode = '';
-let endpoint = '';
+let endpoint = 'https://terminal-ops-web.vercel.app/api/ingest/records';
 
+const API_KEY = '5f7a2c9e1b3d6f8a4c2e9d1f7b5a3c6e8d2f4b1a9c7e5d3f6a8b2c1e9d4f7a5c';
+const FIXED_TERMINAL = 'TCS';
 const FIXED_TEST_BARCODE = '31260342525894000183550010000428661000560748';
 
 const QUEUE_KEY = 'pendingBarcodePayloads';
@@ -152,6 +154,11 @@ async function loadEndpointFromEnv() {
   }
 }
 
+function formatDateTime(date = new Date()) {
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
 function readQueue() {
   try {
     const parsed = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
@@ -187,7 +194,11 @@ function queuePayload(payload) {
 async function postPayload(payload) {
   const response = await fetch(endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      accept: 'application/json',
+      'x-api-key': API_KEY,
+      'Content-Type': 'application/json'
+    },
     body: JSON.stringify(payload)
   });
 
@@ -254,7 +265,7 @@ window.addEventListener('appinstalled', () => {
 
 async function sendCode() {
   if (!endpoint) {
-    setStatus('Endpoint não configurado. Verifique o .env.');
+    setStatus('Endpoint não configurado.');
     showFeedback('Endpoint não configurado.', 'error');
     return;
   }
@@ -269,11 +280,20 @@ async function sendCode() {
   const placa = placaInput.value.trim();
 
   const payload = {
-    code: currentCode,
-    nomeMotorista,
-    telefone,
-    placa,
-    scannedAt: new Date().toISOString()
+    dataHora: formatDateTime(),
+    nota: {
+      numero: currentCode,
+      original: currentCode,
+      status: 'PROCESSADO'
+    },
+    motorista: {
+      nome: nomeMotorista,
+      celular: telefone
+    },
+    veiculo: {
+      placa
+    },
+    terminal: FIXED_TERMINAL
   };
 
   try {
@@ -441,4 +461,4 @@ writeQueue(initialQueue);
 switchTab('scanner');
 renderHistory();
 applyFixedTestBarcode();
-loadEndpointFromEnv().then(flushQueue);
+flushQueue();
