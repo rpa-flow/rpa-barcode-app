@@ -31,6 +31,11 @@ const WARNING_THRESHOLD = 100;
 const HISTORY_KEY = 'barcodeSendHistory';
 const HISTORY_LIMIT = 10;
 
+function createId() {
+  if (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function') return globalThis.crypto.randomUUID();
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 function setStatus(message) {
   statusOutput.textContent = message;
 }
@@ -224,17 +229,17 @@ async function sendCode() {
 
     if (!navigator.onLine) {
       queuePayload(payload);
-      addHistoryEntry({ id: crypto.randomUUID(), code: currentCode, when: new Date().toLocaleString('pt-BR'), status: 'falha', error: 'Sem internet', payload });
+      addHistoryEntry({ id: createId(), code: currentCode, when: new Date().toLocaleString('pt-BR'), status: 'falha', error: 'Sem internet', payload });
       return;
     }
 
     await postPayload(payload);
-    addHistoryEntry({ id: crypto.randomUUID(), code: currentCode, when: new Date().toLocaleString('pt-BR'), status: 'enviado', payload });
+    addHistoryEntry({ id: createId(), code: currentCode, when: new Date().toLocaleString('pt-BR'), status: 'enviado', payload });
     setStatus('Dados enviados com sucesso.');
     await flushQueue();
   } catch (error) {
     queuePayload(payload);
-    addHistoryEntry({ id: crypto.randomUUID(), code: currentCode, when: new Date().toLocaleString('pt-BR'), status: 'falha', error: error.message, payload });
+    addHistoryEntry({ id: createId(), code: currentCode, when: new Date().toLocaleString('pt-BR'), status: 'falha', error: error.message, payload });
     setStatus(`Falha de rede. Dados salvos para reenvio automático. (${error.message})`);
   } finally {
     sendBtn.disabled = false;
