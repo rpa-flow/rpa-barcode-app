@@ -89,3 +89,13 @@ input {
   margin: 0;
   font-weight: 600;
 }
+
+.offline-warning {
+  border: 1px solid #f1b55c;
+  background: rgba(255, 222, 173, 0.45);
+}
+
+.offline-warning p {
+  margin: 0;
+  line-height: 1.4;
+}
