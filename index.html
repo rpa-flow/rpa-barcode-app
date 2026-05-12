@@ -11,7 +11,7 @@
   <body>
     <main class="container">
       <h1>Leitor de Código de Barras</h1>
-      <p class="hint">Instalável no Android como app (PWA).</p>
+      <p class="hint">Abra em HTTPS para usar câmera e instalar no celular.</p>
 
       <section class="panel">
         <button id="installBtn" hidden>Instalar aplicativo</button>
@@ -20,13 +20,20 @@
       <video id="preview" autoplay playsinline muted></video>
 
       <section class="panel">
-        <button id="startBtn">Iniciar câmera</button>
+        <button id="startBtn">Ler barcode</button>
         <button id="stopBtn" disabled>Parar câmera</button>
+        <p id="readStatus" class="read-status">Nenhuma leitura realizada.</p>
       </section>
 
       <section class="panel">
-        <label for="endpointInput">Endpoint HTTP</label>
-        <input id="endpointInput" type="url" value="https://httpbin.org/post" />
+        <label for="nomeMotoristaInput">Nome motorista</label>
+        <input id="nomeMotoristaInput" type="text" placeholder="Ex.: João da Silva" />
+
+        <label for="telefoneInput">Telefone</label>
+        <input id="telefoneInput" type="tel" placeholder="Ex.: (11) 99999-9999" />
+
+        <label for="placaInput">Placa</label>
+        <input id="placaInput" type="text" placeholder="Ex.: ABC1D23" />
       </section>
 
       <section class="panel result">
@@ -34,9 +41,28 @@
         <span id="lastCode">Nenhum</span>
       </section>
 
-      <section class="panel logs">
-        <strong>Log</strong>
-        <pre id="logOutput"></pre>
+      <section class="panel">
+        <button id="sendBtn" disabled>Enviar dados</button>
+      </section>
+
+
+      <section id="offlineWarning" class="panel offline-warning" hidden>
+        <strong>Atenção</strong>
+        <p>
+          Existem muitas notas pendentes. Vá até um local com internet para reenviar.
+          Em caso de dúvida, procure o suporte.
+        </p>
+      </section>
+
+      <section class="panel history-panel">
+        <details>
+          <summary>Últimos 10 envios</summary>
+          <div id="historyList" class="history-list"></div>
+        </details>
+      </section>
+      <section class="panel status">
+        <strong>Status</strong>
+        <p id="statusOutput">Aguardando leitura do código.</p>
       </section>
     </main>
 
