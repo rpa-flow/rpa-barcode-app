@@ -11,6 +11,10 @@ const statusOutput = document.getElementById('statusOutput');
 const readStatus = document.getElementById('readStatus');
 const offlineWarning = document.getElementById('offlineWarning');
 const historyList = document.getElementById('historyList');
+const scannerTab = document.getElementById('scannerTab');
+const historyTab = document.getElementById('historyTab');
+const scannerTabBtn = document.getElementById('scannerTabBtn');
+const historyTabBtn = document.getElementById('historyTabBtn');
 
 let deferredInstallPrompt;
 let stream;
@@ -29,6 +33,15 @@ const HISTORY_LIMIT = 10;
 
 function setStatus(message) {
   statusOutput.textContent = message;
+}
+
+
+function switchTab(tabName) {
+  const showHistory = tabName === 'history';
+  historyTab.hidden = !showHistory;
+  scannerTab.hidden = showHistory;
+  historyTabBtn.classList.toggle('active', showHistory);
+  scannerTabBtn.classList.toggle('active', !showHistory);
 }
 
 
@@ -351,9 +364,13 @@ startBtn.addEventListener('click', startCamera);
 stopBtn.addEventListener('click', stopCamera);
 sendBtn.addEventListener('click', sendCode);
 
+scannerTabBtn.addEventListener('click', () => switchTab('scanner'));
+historyTabBtn.addEventListener('click', () => switchTab('history'));
+
 window.addEventListener('online', flushQueue);
 
 const initialQueue = readQueue();
 writeQueue(initialQueue);
+switchTab('scanner');
 renderHistory();
 loadEndpointFromEnv().then(flushQueue);
