@@ -162,3 +162,8 @@ input {
   background: #2d6df6;
   color: #fff;
 }
+
+
+[hidden] {
+  display: none !important;
+}

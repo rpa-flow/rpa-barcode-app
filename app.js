@@ -125,10 +125,16 @@ function readQueue() {
   }
 }
 
+
+function updateOfflineWarning(queueLength) {
+  const shouldShowWarning = Number.isFinite(queueLength) && queueLength >= WARNING_THRESHOLD;
+  offlineWarning.hidden = !shouldShowWarning;
+}
+
 function writeQueue(queue) {
   const safeQueue = Array.isArray(queue) ? queue : [];
   localStorage.setItem(QUEUE_KEY, JSON.stringify(safeQueue));
-  offlineWarning.hidden = safeQueue.length < WARNING_THRESHOLD;
+  updateOfflineWarning(safeQueue.length);
 }
 
 function queuePayload(payload) {
@@ -370,6 +376,7 @@ historyTabBtn.addEventListener('click', () => switchTab('history'));
 window.addEventListener('online', flushQueue);
 
 const initialQueue = readQueue();
+updateOfflineWarning(initialQueue.length);
 writeQueue(initialQueue);
 switchTab('scanner');
 renderHistory();
