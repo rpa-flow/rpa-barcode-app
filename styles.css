@@ -124,3 +124,41 @@ input {
   width: fit-content;
   background: #d77b00;
 }
+
+
+.app-header {
+  display: grid;
+  gap: 6px;
+}
+
+.app-tab-content {
+  display: grid;
+  gap: 14px;
+}
+
+.history-hint {
+  margin: 0;
+  opacity: 0.8;
+}
+
+.tab-menu {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.tab-btn {
+  background: #d7ddea;
+  color: #1a1a1a;
+}
+
+.tab-btn.active {
+  background: #2d6df6;
+  color: #fff;
+}

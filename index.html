@@ -10,60 +10,70 @@
   </head>
   <body>
     <main class="container">
-      <h1>Leitor de Código de Barras</h1>
-      <p class="hint">Abra em HTTPS para usar câmera e instalar no celular.</p>
+      <header class="app-header">
+        <h1>Leitor de Código de Barras</h1>
+        <p class="hint">Abra em HTTPS para usar câmera e instalar no celular.</p>
+      </header>
 
-      <section class="panel">
-        <button id="installBtn" hidden>Instalar aplicativo</button>
+      <section id="scannerTab" class="app-tab-content">
+        <section class="panel">
+          <button id="installBtn" hidden>Instalar aplicativo</button>
+        </section>
+
+        <video id="preview" autoplay playsinline muted></video>
+
+        <section class="panel">
+          <button id="startBtn">Ler barcode</button>
+          <button id="stopBtn" disabled>Parar câmera</button>
+          <p id="readStatus" class="read-status">Nenhuma leitura realizada.</p>
+        </section>
+
+        <section class="panel">
+          <label for="nomeMotoristaInput">Nome motorista</label>
+          <input id="nomeMotoristaInput" type="text" placeholder="Ex.: João da Silva" />
+
+          <label for="telefoneInput">Telefone</label>
+          <input id="telefoneInput" type="tel" placeholder="Ex.: (11) 99999-9999" />
+
+          <label for="placaInput">Placa</label>
+          <input id="placaInput" type="text" placeholder="Ex.: ABC1D23" />
+        </section>
+
+        <section class="panel result">
+          <strong>Último código lido:</strong>
+          <span id="lastCode">Nenhum</span>
+        </section>
+
+        <section class="panel">
+          <button id="sendBtn" disabled>Enviar dados</button>
+        </section>
+
+        <section id="offlineWarning" class="panel offline-warning" hidden>
+          <strong>Atenção</strong>
+          <p>
+            Existem muitas notas pendentes. Vá até um local com internet para reenviar.
+            Em caso de dúvida, procure o suporte.
+          </p>
+        </section>
       </section>
 
-      <video id="preview" autoplay playsinline muted></video>
-
-      <section class="panel">
-        <button id="startBtn">Ler barcode</button>
-        <button id="stopBtn" disabled>Parar câmera</button>
-        <p id="readStatus" class="read-status">Nenhuma leitura realizada.</p>
-      </section>
-
-      <section class="panel">
-        <label for="nomeMotoristaInput">Nome motorista</label>
-        <input id="nomeMotoristaInput" type="text" placeholder="Ex.: João da Silva" />
-
-        <label for="telefoneInput">Telefone</label>
-        <input id="telefoneInput" type="tel" placeholder="Ex.: (11) 99999-9999" />
-
-        <label for="placaInput">Placa</label>
-        <input id="placaInput" type="text" placeholder="Ex.: ABC1D23" />
-      </section>
-
-      <section class="panel result">
-        <strong>Último código lido:</strong>
-        <span id="lastCode">Nenhum</span>
-      </section>
-
-      <section class="panel">
-        <button id="sendBtn" disabled>Enviar dados</button>
-      </section>
-
-
-      <section id="offlineWarning" class="panel offline-warning" hidden>
-        <strong>Atenção</strong>
-        <p>
-          Existem muitas notas pendentes. Vá até um local com internet para reenviar.
-          Em caso de dúvida, procure o suporte.
-        </p>
-      </section>
-
-      <section class="panel history-panel">
-        <details>
-          <summary>Últimos 10 envios</summary>
+      <section id="historyTab" class="app-tab-content" hidden>
+        <section class="panel history-panel">
+          <strong>Histórico de envios</strong>
+          <p class="history-hint">Visualize os últimos 10 envios e reenvie os que falharam.</p>
           <div id="historyList" class="history-list"></div>
-        </details>
+        </section>
       </section>
+
       <section class="panel status">
         <strong>Status</strong>
         <p id="statusOutput">Aguardando leitura do código.</p>
       </section>
+
+      <nav class="tab-menu" aria-label="Menu principal">
+        <button id="scannerTabBtn" class="tab-btn active" type="button">Leitura</button>
+        <button id="historyTabBtn" class="tab-btn" type="button">Histórico</button>
+      </nav>
     </main>
 
     <script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
