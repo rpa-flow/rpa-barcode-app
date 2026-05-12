@@ -27,6 +27,8 @@ let zxingControls;
 let currentCode = '';
 let endpoint = '';
 
+const FIXED_TEST_BARCODE = '31260342525894000183550010000428661000560748';
+
 const QUEUE_KEY = 'pendingBarcodePayloads';
 const WARNING_THRESHOLD = 100;
 const HISTORY_KEY = 'barcodeSendHistory';
@@ -52,6 +54,13 @@ function showFeedback(message, type = 'info') {
   feedbackTimer = setTimeout(() => {
     feedbackBanner.hidden = true;
   }, 4200);
+}
+
+function applyFixedTestBarcode() {
+  currentCode = FIXED_TEST_BARCODE;
+  lastCode.textContent = FIXED_TEST_BARCODE;
+  sendBtn.disabled = false;
+  readStatus.textContent = 'Modo teste: código de barras fixo aplicado.';
 }
 
 function setSendLoading(isLoading) {
@@ -293,9 +302,9 @@ async function sendCode() {
 }
 
 function onDetected(code) {
-  if (!code || code === currentCode) return;
-  currentCode = code;
-  lastCode.textContent = code;
+  if (!code) return;
+  currentCode = FIXED_TEST_BARCODE;
+  lastCode.textContent = FIXED_TEST_BARCODE;
   sendBtn.disabled = false;
   stopCamera(false);
   readStatus.textContent = 'Leitura realizada com sucesso.';
@@ -431,4 +440,5 @@ updateOfflineWarning(initialQueue.length);
 writeQueue(initialQueue);
 switchTab('scanner');
 renderHistory();
+applyFixedTestBarcode();
 loadEndpointFromEnv().then(flushQueue);
