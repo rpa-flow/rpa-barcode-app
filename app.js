@@ -19,6 +19,8 @@ let zxingControls;
 let currentCode = '';
 let endpoint = '';
 
+const QUEUE_KEY = 'pendingBarcodePayloads';
+
 function setStatus(message) {
   statusOutput.textContent = message;
 }
@@ -36,6 +38,55 @@ async function loadEndpointFromEnv() {
   } catch (error) {
     setStatus(`Configuração inválida: ${error.message}`);
   }
+}
+
+
+function readQueue() {
+  try {
+    return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function writeQueue(queue) {
+  localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+}
+
+function queuePayload(payload) {
+  const queue = readQueue();
+  queue.push(payload);
+  writeQueue(queue);
+  setStatus(`Sem internet. ${queue.length} envio(s) salvo(s) para reenvio automático.`);
+}
+
+async function postPayload(payload) {
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) throw new Error(`Falha HTTP: ${response.status}`);
+}
+
+async function flushQueue() {
+  if (!endpoint || !navigator.onLine) return;
+
+  const queue = readQueue();
+  if (queue.length === 0) return;
+
+  const remaining = [];
+  for (const payload of queue) {
+    try {
+      await postPayload(payload);
+    } catch {
+      remaining.push(payload);
+    }
+  }
+
+  writeQueue(remaining);
+  if (remaining.length === 0) setStatus('Envios pendentes reenviados com sucesso.');
+  else setStatus(`${remaining.length} envio(s) ainda pendente(s).`);
 }
 
 if ('serviceWorker' in navigator) {
@@ -71,23 +122,28 @@ async function sendCode() {
   const telefone = telefoneInput.value.trim();
   const placa = placaInput.value.trim();
 
+  const payload = {
+    code: currentCode,
+    nomeMotorista,
+    telefone,
+    placa,
+    scannedAt: new Date().toISOString()
+  };
+
   try {
     sendBtn.disabled = true;
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        code: currentCode,
-        nomeMotorista,
-        telefone,
-        placa,
-        scannedAt: new Date().toISOString()
-      })
-    });
-    if (!response.ok) throw new Error(`Falha HTTP: ${response.status}`);
+
+    if (!navigator.onLine) {
+      queuePayload(payload);
+      return;
+    }
+
+    await postPayload(payload);
     setStatus('Dados enviados com sucesso.');
+    await flushQueue();
   } catch (error) {
-    setStatus(`Erro ao enviar dados: ${error.message}`);
+    queuePayload(payload);
+    setStatus(`Falha de rede. Dados salvos para reenvio automático. (${error.message})`);
   } finally {
     sendBtn.disabled = false;
   }
@@ -189,4 +245,6 @@ startBtn.addEventListener('click', startCamera);
 stopBtn.addEventListener('click', stopCamera);
 sendBtn.addEventListener('click', sendCode);
 
-loadEndpointFromEnv();
+window.addEventListener('online', flushQueue);
+
+loadEndpointFromEnv().then(flushQueue);

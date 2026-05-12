@@ -102,3 +102,12 @@ POST_URL=https://seu-endpoint.com/api/barcode
 
 > A URL de envio não aparece mais na tela do app para simplificar o uso para usuário final.
 > O envio é feito ao tocar no botão **Enviar dados** após a leitura do código.
+
+
+## Funcionamento offline (sem internet)
+
+Se o aparelho ficar sem internet no momento do envio:
+
+- O app salva os dados localmente no navegador (fila local).
+- Quando a internet voltar, o app tenta reenviar automaticamente os itens pendentes.
+- Você também pode continuar lendo códigos normalmente enquanto estiver offline.
