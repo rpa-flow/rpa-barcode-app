@@ -94,6 +94,32 @@ async function scanLoop() {
   rafId = requestAnimationFrame(scanLoop);
 }
 
+function explainCameraError(error) {
+  const message = (error && error.message) || '';
+
+  if (!window.isSecureContext) {
+    return 'A câmera só funciona em contexto seguro (HTTPS) ou localhost.';
+  }
+
+  if (!navigator.mediaDevices?.getUserMedia) {
+    return 'Este navegador não suporta acesso à câmera (getUserMedia).';
+  }
+
+  if (error?.name === 'NotAllowedError' || error?.name === 'SecurityError') {
+    return 'Permissão de câmera negada. Libere a câmera nas configurações do navegador.';
+  }
+
+  if (error?.name === 'NotFoundError' || error?.name === 'DevicesNotFoundError') {
+    return 'Nenhuma câmera foi encontrada neste aparelho.';
+  }
+
+  if (error?.name === 'NotReadableError' || error?.name === 'TrackStartError') {
+    return 'A câmera está em uso por outro app. Feche outros apps de câmera e tente novamente.';
+  }
+
+  return `Não foi possível iniciar a câmera: ${message || 'erro desconhecido.'}`;
+}
+
 async function startWithBarcodeDetector() {
   detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'] });
   stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
@@ -120,6 +146,11 @@ async function startWithZXing() {
 }
 
 async function startCamera() {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    log('Este navegador não suporta acesso à câmera.');
+    return;
+  }
+
   try {
     startBtn.disabled = true;
     if ('BarcodeDetector' in window) await startWithBarcodeDetector();
@@ -128,7 +159,7 @@ async function startCamera() {
   } catch (error) {
     startBtn.disabled = false;
     stopBtn.disabled = true;
-    log(`Não foi possível iniciar leitura: ${error.message}`);
+    log(explainCameraError(error));
   }
 }
 
