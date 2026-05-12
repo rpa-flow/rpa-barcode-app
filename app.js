@@ -3,6 +3,9 @@ const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const installBtn = document.getElementById('installBtn');
 const endpointInput = document.getElementById('endpointInput');
+const nomeMotoristaInput = document.getElementById('nomeMotoristaInput');
+const telefoneInput = document.getElementById('telefoneInput');
+const placaInput = document.getElementById('placaInput');
 const lastCode = document.getElementById('lastCode');
 const logOutput = document.getElementById('logOutput');
 
@@ -49,11 +52,21 @@ async function sendCode(code) {
   const endpoint = endpointInput.value.trim();
   if (!endpoint) return log('Endpoint vazio.');
 
+  const nomeMotorista = nomeMotoristaInput.value.trim();
+  const telefone = telefoneInput.value.trim();
+  const placa = placaInput.value.trim();
+
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, scannedAt: new Date().toISOString() })
+      body: JSON.stringify({
+        code,
+        nomeMotorista,
+        telefone,
+        placa,
+        scannedAt: new Date().toISOString()
+      })
     });
     if (!response.ok) throw new Error(`Falha HTTP: ${response.status}`);
     log(`Código enviado com sucesso: ${code}`);
