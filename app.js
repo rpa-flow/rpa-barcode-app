@@ -8,7 +8,9 @@ const telefoneInput = document.getElementById('telefoneInput');
 const placaInput = document.getElementById('placaInput');
 const lastCode = document.getElementById('lastCode');
 const statusOutput = document.getElementById('statusOutput');
+const readStatus = document.getElementById('readStatus');
 const offlineWarning = document.getElementById('offlineWarning');
+const historyList = document.getElementById('historyList');
 
 let deferredInstallPrompt;
 let stream;
@@ -22,9 +24,56 @@ let endpoint = '';
 
 const QUEUE_KEY = 'pendingBarcodePayloads';
 const WARNING_THRESHOLD = 100;
+const HISTORY_KEY = 'barcodeSendHistory';
+const HISTORY_LIMIT = 10;
 
 function setStatus(message) {
   statusOutput.textContent = message;
+}
+
+
+function readHistory() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeHistory(history) {
+  const safeHistory = Array.isArray(history) ? history.slice(0, HISTORY_LIMIT) : [];
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(safeHistory));
+}
+
+function renderHistory() {
+  const history = readHistory();
+  if (history.length === 0) {
+    historyList.innerHTML = '<p>Nenhum envio ainda.</p>';
+    return;
+  }
+
+  historyList.innerHTML = history
+    .map((item) => {
+      const retryButton = item.status === 'falha' ? `<button data-retry-id="${item.id}" class="retry-btn">Tentar novamente</button>` : '';
+      const errorText = item.error ? `<small>Erro: ${item.error}</small>` : '';
+      return `
+        <div class="history-item">
+          <strong>${item.code || 'Sem código'}</strong>
+          <span>${item.when} • ${item.status}</span>
+          ${errorText}
+          ${retryButton}
+        </div>
+      `;
+    })
+    .join('');
+}
+
+function addHistoryEntry(entry) {
+  const history = readHistory();
+  history.unshift(entry);
+  writeHistory(history);
+  renderHistory();
 }
 
 async function loadEndpointFromEnv() {
@@ -156,14 +205,17 @@ async function sendCode() {
 
     if (!navigator.onLine) {
       queuePayload(payload);
+      addHistoryEntry({ id: crypto.randomUUID(), code: currentCode, when: new Date().toLocaleString('pt-BR'), status: 'falha', error: 'Sem internet', payload });
       return;
     }
 
     await postPayload(payload);
+    addHistoryEntry({ id: crypto.randomUUID(), code: currentCode, when: new Date().toLocaleString('pt-BR'), status: 'enviado', payload });
     setStatus('Dados enviados com sucesso.');
     await flushQueue();
   } catch (error) {
     queuePayload(payload);
+    addHistoryEntry({ id: crypto.randomUUID(), code: currentCode, when: new Date().toLocaleString('pt-BR'), status: 'falha', error: error.message, payload });
     setStatus(`Falha de rede. Dados salvos para reenvio automático. (${error.message})`);
   } finally {
     sendBtn.disabled = false;
@@ -175,6 +227,8 @@ function onDetected(code) {
   currentCode = code;
   lastCode.textContent = code;
   sendBtn.disabled = false;
+  stopCamera(false);
+  readStatus.textContent = 'Leitura realizada com sucesso.';
   setStatus('Código lido. Toque em "Enviar dados".');
 }
 
@@ -227,6 +281,7 @@ async function startWithZXing() {
 }
 
 async function startCamera() {
+  readStatus.textContent = 'Aguardando leitura...';
   if (!navigator.mediaDevices?.getUserMedia) {
     setStatus('Este navegador não suporta acesso à câmera.');
     return;
@@ -244,7 +299,7 @@ async function startCamera() {
   }
 }
 
-function stopCamera() {
+function stopCamera(showStatus = true) {
   scanning = false;
   cancelAnimationFrame(rafId);
   if (zxingControls) zxingControls.stop();
@@ -259,8 +314,38 @@ function stopCamera() {
   preview.srcObject = null;
   startBtn.disabled = false;
   stopBtn.disabled = true;
-  setStatus('Câmera parada.');
+  if (showStatus) setStatus('Câmera parada.');
 }
+
+
+async function retryHistoryEntry(id) {
+  const history = readHistory();
+  const item = history.find((entry) => entry.id === id);
+  if (!item || item.status !== 'falha') return;
+
+  try {
+    if (!navigator.onLine) throw new Error('Sem internet');
+    await postPayload(item.payload);
+    item.status = 'enviado';
+    item.error = '';
+    item.when = new Date().toLocaleString('pt-BR');
+    writeHistory(history);
+    renderHistory();
+    setStatus('Reenvio manual concluído com sucesso.');
+  } catch (error) {
+    item.error = error.message;
+    item.when = new Date().toLocaleString('pt-BR');
+    writeHistory(history);
+    renderHistory();
+    setStatus(`Falha no reenvio manual: ${error.message}`);
+  }
+}
+
+historyList.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-retry-id]');
+  if (!button) return;
+  retryHistoryEntry(button.dataset.retryId);
+});
 
 startBtn.addEventListener('click', startCamera);
 stopBtn.addEventListener('click', stopCamera);
@@ -270,4 +355,5 @@ window.addEventListener('online', flushQueue);
 
 const initialQueue = readQueue();
 writeQueue(initialQueue);
+renderHistory();
 loadEndpointFromEnv().then(flushQueue);

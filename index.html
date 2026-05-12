@@ -22,6 +22,7 @@
       <section class="panel">
         <button id="startBtn">Ler barcode</button>
         <button id="stopBtn" disabled>Parar câmera</button>
+        <p id="readStatus" class="read-status">Nenhuma leitura realizada.</p>
       </section>
 
       <section class="panel">
@@ -51,6 +52,13 @@
           Existem muitas notas pendentes. Vá até um local com internet para reenviar.
           Em caso de dúvida, procure o suporte.
         </p>
+      </section>
+
+      <section class="panel history-panel">
+        <details>
+          <summary>Últimos 10 envios</summary>
+          <div id="historyList" class="history-list"></div>
+        </details>
       </section>
       <section class="panel status">
         <strong>Status</strong>

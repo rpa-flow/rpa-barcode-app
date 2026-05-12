@@ -99,3 +99,28 @@ input {
   margin: 0;
   line-height: 1.4;
 }
+
+.read-status {
+  margin: 2px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.history-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.history-item {
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.retry-btn {
+  width: fit-content;
+  background: #d77b00;
+}
