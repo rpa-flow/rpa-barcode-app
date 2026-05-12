@@ -111,3 +111,18 @@ Se o aparelho ficar sem internet no momento do envio:
 - O app salva os dados localmente no navegador (fila local).
 - Quando a internet voltar, o app tenta reenviar automaticamente os itens pendentes.
 - Você também pode continuar lendo códigos normalmente enquanto estiver offline.
+
+
+## Publicação no Vercel
+
+1. Crie um projeto no Vercel apontando para este repositório.
+2. Em **Settings > Environment Variables**, crie a variável:
+
+```text
+POST_URL=https://seu-endpoint.com/api/barcode
+```
+
+3. Faça o deploy. O app ficará em HTTPS automaticamente (necessário para câmera e instalação PWA).
+4. Abra a URL no Android e use **Instalar aplicativo** para adicionar na tela inicial.
+
+> Em ambiente local, o app ainda aceita fallback via arquivo `.env`.

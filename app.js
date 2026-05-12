@@ -8,6 +8,7 @@ const telefoneInput = document.getElementById('telefoneInput');
 const placaInput = document.getElementById('placaInput');
 const lastCode = document.getElementById('lastCode');
 const statusOutput = document.getElementById('statusOutput');
+const offlineWarning = document.getElementById('offlineWarning');
 
 let deferredInstallPrompt;
 let stream;
@@ -20,12 +21,25 @@ let currentCode = '';
 let endpoint = '';
 
 const QUEUE_KEY = 'pendingBarcodePayloads';
+const WARNING_THRESHOLD = 100;
 
 function setStatus(message) {
   statusOutput.textContent = message;
 }
 
 async function loadEndpointFromEnv() {
+  try {
+    const response = await fetch('/api/config', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Configuração do servidor indisponível.');
+
+    const data = await response.json();
+    endpoint = (data.postUrl || '').trim();
+    if (!endpoint) throw new Error('POST_URL vazia no servidor.');
+    return;
+  } catch {
+    // fallback local para ambiente de desenvolvimento sem Vercel
+  }
+
   try {
     const response = await fetch('/.env', { cache: 'no-store' });
     if (!response.ok) throw new Error('Arquivo .env não encontrado.');
@@ -40,7 +54,6 @@ async function loadEndpointFromEnv() {
   }
 }
 
-
 function readQueue() {
   try {
     return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
@@ -51,13 +64,18 @@ function readQueue() {
 
 function writeQueue(queue) {
   localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+  offlineWarning.hidden = queue.length < WARNING_THRESHOLD;
 }
 
 function queuePayload(payload) {
   const queue = readQueue();
   queue.push(payload);
   writeQueue(queue);
-  setStatus(`Sem internet. ${queue.length} envio(s) salvo(s) para reenvio automático.`);
+  if (queue.length >= WARNING_THRESHOLD) {
+    setStatus(`Atenção: ${queue.length} notas pendentes. Vá para um local com internet e procure suporte.`);
+  } else {
+    setStatus(`Sem internet. ${queue.length} envio(s) salvo(s) para reenvio automático.`);
+  }
 }
 
 async function postPayload(payload) {
@@ -86,6 +104,7 @@ async function flushQueue() {
 
   writeQueue(remaining);
   if (remaining.length === 0) setStatus('Envios pendentes reenviados com sucesso.');
+  else if (remaining.length >= WARNING_THRESHOLD) setStatus(`Atenção: ${remaining.length} notas pendentes. Vá para um local com internet e procure suporte.`);
   else setStatus(`${remaining.length} envio(s) ainda pendente(s).`);
 }
 
@@ -247,4 +266,5 @@ sendBtn.addEventListener('click', sendCode);
 
 window.addEventListener('online', flushQueue);
 
+writeQueue(readQueue());
 loadEndpointFromEnv().then(flushQueue);
