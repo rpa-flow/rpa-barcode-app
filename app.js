@@ -181,7 +181,20 @@ async function postPayload(payload) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
-  if (!response.ok) throw new Error(`Falha HTTP: ${response.status}`);
+
+  if (!response.ok) {
+    let responseDetails = '';
+    try {
+      const errorBody = await response.text();
+      responseDetails = errorBody.trim();
+    } catch {
+      responseDetails = '';
+    }
+
+    const baseMessage = `Falha HTTP ${response.status} ${response.statusText || ''}`.trim();
+    if (!responseDetails) throw new Error(baseMessage);
+    throw new Error(`${baseMessage} - ${responseDetails.slice(0, 240)}`);
+  }
 }
 
 async function flushQueue() {
