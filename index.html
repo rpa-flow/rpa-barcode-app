@@ -22,7 +22,7 @@
 
         <video id="preview" autoplay playsinline muted></video>
 
-        <section class="panel">
+        <section class="panel action-panel">
           <button id="startBtn">Ler barcode</button>
           <button id="stopBtn" disabled>Parar câmera</button>
           <p id="readStatus" class="read-status">Nenhuma leitura realizada.</p>
@@ -45,7 +45,10 @@
         </section>
 
         <section class="panel">
-          <button id="sendBtn" disabled>Enviar dados</button>
+          <button id="sendBtn" disabled>
+            <span class="btn-text">Enviar dados</span>
+            <span class="btn-loader" hidden aria-hidden="true"></span>
+          </button>
         </section>
 
         <section id="offlineWarning" class="panel offline-warning" hidden>
@@ -64,6 +67,8 @@
           <div id="historyList" class="history-list"></div>
         </section>
       </section>
+
+      <section id="feedbackBanner" class="feedback-banner" hidden role="status" aria-live="polite"></section>
 
       <section class="panel status">
         <strong>Status</strong>
