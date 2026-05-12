@@ -84,3 +84,45 @@ adb install app/build/outputs/apk/release/app-release-signed.apk
 - Usa `BarcodeDetector` quando disponível.
 - Usa fallback `ZXing` automaticamente no Android.
 - Registra `service-worker` para experiência PWA instalável.
+
+
+## Configuração do endpoint (obrigatório)
+
+1. Copie o arquivo de exemplo:
+
+```bash
+cp .env.example .env
+```
+
+2. Edite o `.env` e informe a URL da API:
+
+```text
+POST_URL=https://seu-endpoint.com/api/barcode
+```
+
+> A URL de envio não aparece mais na tela do app para simplificar o uso para usuário final.
+> O envio é feito ao tocar no botão **Enviar dados** após a leitura do código.
+
+
+## Funcionamento offline (sem internet)
+
+Se o aparelho ficar sem internet no momento do envio:
+
+- O app salva os dados localmente no navegador (fila local).
+- Quando a internet voltar, o app tenta reenviar automaticamente os itens pendentes.
+- Você também pode continuar lendo códigos normalmente enquanto estiver offline.
+
+
+## Publicação no Vercel
+
+1. Crie um projeto no Vercel apontando para este repositório.
+2. Em **Settings > Environment Variables**, crie a variável:
+
+```text
+POST_URL=https://seu-endpoint.com/api/barcode
+```
+
+3. Faça o deploy. O app ficará em HTTPS automaticamente (necessário para câmera e instalação PWA).
+4. Abra a URL no Android e use **Instalar aplicativo** para adicionar na tela inicial.
+
+> Em ambiente local, o app ainda aceita fallback via arquivo `.env`.
