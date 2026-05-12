@@ -11,7 +11,7 @@
   <body>
     <main class="container">
       <h1>Leitor de Código de Barras</h1>
-      <p class="hint">Instalável no Android como app (PWA).</p>
+      <p class="hint">Abra em HTTPS para usar câmera e instalar no celular.</p>
 
       <section class="panel">
         <button id="installBtn" hidden>Instalar aplicativo</button>
@@ -33,9 +33,6 @@
 
         <label for="placaInput">Placa</label>
         <input id="placaInput" type="text" placeholder="Ex.: ABC1D23" />
-
-        <label for="endpointInput">Endpoint HTTP</label>
-        <input id="endpointInput" type="url" value="https://httpbin.org/post" />
       </section>
 
       <section class="panel result">
@@ -43,9 +40,13 @@
         <span id="lastCode">Nenhum</span>
       </section>
 
-      <section class="panel logs">
-        <strong>Log</strong>
-        <pre id="logOutput"></pre>
+      <section class="panel">
+        <button id="sendBtn" disabled>Enviar dados</button>
+      </section>
+
+      <section class="panel status">
+        <strong>Status</strong>
+        <p id="statusOutput">Aguardando leitura do código.</p>
       </section>
     </main>
 

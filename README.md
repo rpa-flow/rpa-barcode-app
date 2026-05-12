@@ -84,3 +84,21 @@ adb install app/build/outputs/apk/release/app-release-signed.apk
 - Usa `BarcodeDetector` quando disponível.
 - Usa fallback `ZXing` automaticamente no Android.
 - Registra `service-worker` para experiência PWA instalável.
+
+
+## Configuração do endpoint (obrigatório)
+
+1. Copie o arquivo de exemplo:
+
+```bash
+cp .env.example .env
+```
+
+2. Edite o `.env` e informe a URL da API:
+
+```text
+POST_URL=https://seu-endpoint.com/api/barcode
+```
+
+> A URL de envio não aparece mais na tela do app para simplificar o uso para usuário final.
+> O envio é feito ao tocar no botão **Enviar dados** após a leitura do código.
