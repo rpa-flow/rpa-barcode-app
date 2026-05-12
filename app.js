@@ -1,28 +1,116 @@
 const preview = document.getElementById('preview');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
+const sendBtn = document.getElementById('sendBtn');
 const installBtn = document.getElementById('installBtn');
-const endpointInput = document.getElementById('endpointInput');
+const nomeMotoristaInput = document.getElementById('nomeMotoristaInput');
+const telefoneInput = document.getElementById('telefoneInput');
+const placaInput = document.getElementById('placaInput');
 const lastCode = document.getElementById('lastCode');
-const logOutput = document.getElementById('logOutput');
+const statusOutput = document.getElementById('statusOutput');
+const offlineWarning = document.getElementById('offlineWarning');
 
 let deferredInstallPrompt;
 let stream;
 let scanning = false;
 let rafId;
-let lastSentCode = '';
 let detector;
 let zxingReader;
 let zxingControls;
+let currentCode = '';
+let endpoint = '';
 
-function log(message) {
-  const now = new Date().toLocaleTimeString('pt-BR');
-  logOutput.textContent = `[${now}] ${message}\n` + logOutput.textContent;
+const QUEUE_KEY = 'pendingBarcodePayloads';
+const WARNING_THRESHOLD = 100;
+
+function setStatus(message) {
+  statusOutput.textContent = message;
+}
+
+async function loadEndpointFromEnv() {
+  try {
+    const response = await fetch('/api/config', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Configuração do servidor indisponível.');
+
+    const data = await response.json();
+    endpoint = (data.postUrl || '').trim();
+    if (!endpoint) throw new Error('POST_URL vazia no servidor.');
+    return;
+  } catch {
+    // fallback local para ambiente de desenvolvimento sem Vercel
+  }
+
+  try {
+    const response = await fetch('/.env', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Arquivo .env não encontrado.');
+    const text = await response.text();
+    const postUrlLine = text.split('\n').find((line) => line.trim().startsWith('POST_URL='));
+    if (!postUrlLine) throw new Error('POST_URL não definida no .env.');
+
+    endpoint = postUrlLine.split('=').slice(1).join('=').trim().replace(/^"|"$/g, '');
+    if (!endpoint) throw new Error('POST_URL vazia no .env.');
+  } catch (error) {
+    setStatus(`Configuração inválida: ${error.message}`);
+  }
+}
+
+function readQueue() {
+  try {
+    return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function writeQueue(queue) {
+  localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+  offlineWarning.hidden = queue.length < WARNING_THRESHOLD;
+}
+
+function queuePayload(payload) {
+  const queue = readQueue();
+  queue.push(payload);
+  writeQueue(queue);
+  if (queue.length >= WARNING_THRESHOLD) {
+    setStatus(`Atenção: ${queue.length} notas pendentes. Vá para um local com internet e procure suporte.`);
+  } else {
+    setStatus(`Sem internet. ${queue.length} envio(s) salvo(s) para reenvio automático.`);
+  }
+}
+
+async function postPayload(payload) {
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) throw new Error(`Falha HTTP: ${response.status}`);
+}
+
+async function flushQueue() {
+  if (!endpoint || !navigator.onLine) return;
+
+  const queue = readQueue();
+  if (queue.length === 0) return;
+
+  const remaining = [];
+  for (const payload of queue) {
+    try {
+      await postPayload(payload);
+    } catch {
+      remaining.push(payload);
+    }
+  }
+
+  writeQueue(remaining);
+  if (remaining.length === 0) setStatus('Envios pendentes reenviados com sucesso.');
+  else if (remaining.length >= WARNING_THRESHOLD) setStatus(`Atenção: ${remaining.length} notas pendentes. Vá para um local com internet e procure suporte.`);
+  else setStatus(`${remaining.length} envio(s) ainda pendente(s).`);
 }
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/service-worker.js').then(() => {
-    log('Service worker ativo. App pode ser instalado.');
+    setStatus('App pronto para uso.');
   });
 }
 
@@ -42,32 +130,50 @@ installBtn.addEventListener('click', async () => {
 
 window.addEventListener('appinstalled', () => {
   installBtn.hidden = true;
-  log('Aplicativo instalado com sucesso.');
+  setStatus('Aplicativo instalado com sucesso.');
 });
 
-async function sendCode(code) {
-  const endpoint = endpointInput.value.trim();
-  if (!endpoint) return log('Endpoint vazio.');
+async function sendCode() {
+  if (!endpoint) return setStatus('Endpoint não configurado. Verifique o .env.');
+  if (!currentCode) return setStatus('Leia um código antes de enviar.');
+
+  const nomeMotorista = nomeMotoristaInput.value.trim();
+  const telefone = telefoneInput.value.trim();
+  const placa = placaInput.value.trim();
+
+  const payload = {
+    code: currentCode,
+    nomeMotorista,
+    telefone,
+    placa,
+    scannedAt: new Date().toISOString()
+  };
 
   try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, scannedAt: new Date().toISOString() })
-    });
-    if (!response.ok) throw new Error(`Falha HTTP: ${response.status}`);
-    log(`Código enviado com sucesso: ${code}`);
+    sendBtn.disabled = true;
+
+    if (!navigator.onLine) {
+      queuePayload(payload);
+      return;
+    }
+
+    await postPayload(payload);
+    setStatus('Dados enviados com sucesso.');
+    await flushQueue();
   } catch (error) {
-    log(`Erro ao enviar código: ${error.message}`);
+    queuePayload(payload);
+    setStatus(`Falha de rede. Dados salvos para reenvio automático. (${error.message})`);
+  } finally {
+    sendBtn.disabled = false;
   }
 }
 
 function onDetected(code) {
-  if (!code || code === lastSentCode) return;
-  lastSentCode = code;
+  if (!code || code === currentCode) return;
+  currentCode = code;
   lastCode.textContent = code;
-  log(`Código detectado: ${code}`);
-  sendCode(code);
+  sendBtn.disabled = false;
+  setStatus('Código lido. Toque em "Enviar dados".');
 }
 
 async function scanLoop() {
@@ -76,9 +182,21 @@ async function scanLoop() {
     const barcodes = await detector.detect(preview);
     if (barcodes.length > 0) onDetected(barcodes[0].rawValue);
   } catch (error) {
-    log(`Erro na leitura: ${error.message}`);
+    setStatus(`Erro na leitura: ${error.message}`);
   }
   rafId = requestAnimationFrame(scanLoop);
+}
+
+function explainCameraError(error) {
+  const message = (error && error.message) || '';
+
+  if (!window.isSecureContext) return 'A câmera só funciona em HTTPS ou localhost.';
+  if (!navigator.mediaDevices?.getUserMedia) return 'Este navegador não suporta acesso à câmera.';
+  if (error?.name === 'NotAllowedError' || error?.name === 'SecurityError') return 'Permissão de câmera negada.';
+  if (error?.name === 'NotFoundError' || error?.name === 'DevicesNotFoundError') return 'Nenhuma câmera encontrada.';
+  if (error?.name === 'NotReadableError' || error?.name === 'TrackStartError') return 'A câmera está em uso por outro app.';
+
+  return `Não foi possível iniciar a câmera: ${message || 'erro desconhecido.'}`;
 }
 
 async function startWithBarcodeDetector() {
@@ -86,7 +204,7 @@ async function startWithBarcodeDetector() {
   stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
   preview.srcObject = stream;
   scanning = true;
-  log('Leitura via BarcodeDetector iniciada.');
+  setStatus('Leitura iniciada. Aponte para o código de barras.');
   scanLoop();
 }
 
@@ -103,10 +221,15 @@ async function startWithZXing() {
   });
 
   scanning = true;
-  log('Leitura via ZXing iniciada (compatível com Android).');
+  setStatus('Leitura iniciada. Aponte para o código de barras.');
 }
 
 async function startCamera() {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    setStatus('Este navegador não suporta acesso à câmera.');
+    return;
+  }
+
   try {
     startBtn.disabled = true;
     if ('BarcodeDetector' in window) await startWithBarcodeDetector();
@@ -115,7 +238,7 @@ async function startCamera() {
   } catch (error) {
     startBtn.disabled = false;
     stopBtn.disabled = true;
-    log(`Não foi possível iniciar leitura: ${error.message}`);
+    setStatus(explainCameraError(error));
   }
 }
 
@@ -134,8 +257,14 @@ function stopCamera() {
   preview.srcObject = null;
   startBtn.disabled = false;
   stopBtn.disabled = true;
-  log('Câmera parada.');
+  setStatus('Câmera parada.');
 }
 
 startBtn.addEventListener('click', startCamera);
 stopBtn.addEventListener('click', stopCamera);
+sendBtn.addEventListener('click', sendCode);
+
+window.addEventListener('online', flushQueue);
+
+writeQueue(readQueue());
+loadEndpointFromEnv().then(flushQueue);
