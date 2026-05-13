@@ -284,7 +284,7 @@ async function sendCode() {
     nota: {
       numero: currentCode,
       original: currentCode,
-      status: 'PROCESSADO'
+      status: 'Pendente'
     },
     motorista: {
       nome: nomeMotorista,
