@@ -25,9 +25,8 @@ let detector;
 let zxingReader;
 let zxingControls;
 let currentCode = '';
-let endpoint = 'https://terminal-ops-web.vercel.app/api/ingest/records';
+let endpoint = '/api/ingest/records';
 
-const API_KEY = '5f7a2c9e1b3d6f8a4c2e9d1f7b5a3c6e8d2f4b1a9c7e5d3f6a8b2c1e9d4f7a5c';
 const FIXED_TERMINAL = 'TCS';
 const FIXED_TEST_BARCODE = '31260342525894000183550010000428661000560748';
 
@@ -195,8 +194,6 @@ async function postPayload(payload) {
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
-      accept: 'application/json',
-      'x-api-key': API_KEY,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify(payload)
