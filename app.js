@@ -25,8 +25,9 @@ let detector;
 let zxingReader;
 let zxingControls;
 let currentCode = '';
-let endpoint = '';
+let endpoint = '/api/ingest/records';
 
+const FIXED_TERMINAL = 'TCS';
 const QUEUE_KEY = 'pendingBarcodePayloads';
 const WARNING_THRESHOLD = 100;
 const HISTORY_KEY = 'barcodeSendHistory';
@@ -143,6 +144,11 @@ async function loadEndpointFromEnv() {
   }
 }
 
+function formatDateTime(date = new Date()) {
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
 function readQueue() {
   try {
     const parsed = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
@@ -178,7 +184,9 @@ function queuePayload(payload) {
 async function postPayload(payload) {
   const response = await fetch(endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json'
+    },
     body: JSON.stringify(payload)
   });
 
@@ -245,7 +253,7 @@ window.addEventListener('appinstalled', () => {
 
 async function sendCode() {
   if (!endpoint) {
-    setStatus('Endpoint não configurado. Verifique o .env.');
+    setStatus('Endpoint não configurado.');
     showFeedback('Endpoint não configurado.', 'error');
     return;
   }
@@ -260,11 +268,20 @@ async function sendCode() {
   const placa = placaInput.value.trim();
 
   const payload = {
-    code: currentCode,
-    nomeMotorista,
-    telefone,
-    placa,
-    scannedAt: new Date().toISOString()
+    dataHora: formatDateTime(),
+    nota: {
+      numero: currentCode,
+      original: currentCode,
+      status: 'Pendente'
+    },
+    motorista: {
+      nome: nomeMotorista,
+      celular: telefone
+    },
+    veiculo: {
+      placa
+    },
+    terminal: FIXED_TERMINAL
   };
 
   try {
@@ -431,4 +448,4 @@ updateOfflineWarning(initialQueue.length);
 writeQueue(initialQueue);
 switchTab('scanner');
 renderHistory();
-loadEndpointFromEnv().then(flushQueue);
+flushQueue();
