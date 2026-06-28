@@ -76,6 +76,11 @@ input {
   font-size: 15px;
 }
 
+input[readonly] {
+  background: rgba(127, 127, 127, 0.08);
+  cursor: not-allowed;
+}
+
 .result span { font-size: 18px; font-weight: 700; }
 .status p { margin: 0; font-weight: 600; word-break: break-word; }
 

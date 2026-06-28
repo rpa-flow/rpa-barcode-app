@@ -6,6 +6,8 @@ const installBtn = document.getElementById('installBtn');
 const nomeMotoristaInput = document.getElementById('nomeMotoristaInput');
 const telefoneInput = document.getElementById('telefoneInput');
 const placaInput = document.getElementById('placaInput');
+const cnpjInput = document.getElementById('cnpjInput');
+const numeroNotaInput = document.getElementById('numeroNotaInput');
 const lastCode = document.getElementById('lastCode');
 const statusOutput = document.getElementById('statusOutput');
 const readStatus = document.getElementById('readStatus');
@@ -25,6 +27,7 @@ let detector;
 let zxingReader;
 let zxingControls;
 let currentCode = '';
+let currentNFeData = null;
 let endpoint = '/api/ingest/records';
 
 const FIXED_TERMINAL = 'TCS';
@@ -144,6 +147,41 @@ async function loadEndpointFromEnv() {
   }
 }
 
+
+function validarChaveNFe(chave) {
+  const chaveLimpa = String(chave || '').trim();
+
+  if (!/^\d+$/.test(chaveLimpa)) {
+    throw new Error('Chave da NF-e inválida. Ela deve conter apenas números.');
+  }
+
+  if (chaveLimpa.length !== 44) {
+    throw new Error('Chave da NF-e inválida. Ela deve conter 44 dígitos.');
+  }
+
+  return chaveLimpa;
+}
+
+function extrairDadosDaChaveNFe(chave) {
+  const chaveLimpa = validarChaveNFe(chave);
+
+  return {
+    chave: chaveLimpa,
+    cnpj: chaveLimpa.slice(6, 20),
+    numeroNota: chaveLimpa.slice(25, 34),
+    numeroNotaExibicao: chaveLimpa.slice(25, 34).replace(/^0+/, '') || '0'
+  };
+}
+
+function limparDadosNFe() {
+  currentCode = '';
+  currentNFeData = null;
+  lastCode.textContent = 'Nenhum';
+  cnpjInput.value = '';
+  numeroNotaInput.value = '';
+  sendBtn.disabled = true;
+}
+
 function formatDateTime(date = new Date()) {
   const pad = (value) => String(value).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
@@ -257,9 +295,9 @@ async function sendCode() {
     showFeedback('Endpoint não configurado.', 'error');
     return;
   }
-  if (!currentCode) {
-    setStatus('Leia um código antes de enviar.');
-    showFeedback('Leia um código antes de enviar.', 'error');
+  if (!currentCode || !currentNFeData) {
+    setStatus('Leia uma chave de NF-e válida antes de enviar.');
+    showFeedback('Leia uma chave de NF-e válida antes de enviar.', 'error');
     return;
   }
 
@@ -270,9 +308,13 @@ async function sendCode() {
   const payload = {
     dataHora: formatDateTime(),
     nota: {
-      numero: currentCode,
+      numero: currentNFeData.numeroNota,
+      chave: currentNFeData.chave,
       original: currentCode,
       status: 'Pendente'
+    },
+    emitente: {
+      cnpj: currentNFeData.cnpj
     },
     motorista: {
       nome: nomeMotorista,
@@ -311,12 +353,24 @@ async function sendCode() {
 
 function onDetected(code) {
   if (!code || code === currentCode) return;
-  currentCode = code;
-  lastCode.textContent = code;
-  sendBtn.disabled = false;
-  stopCamera(false);
-  readStatus.textContent = 'Leitura realizada com sucesso.';
-  setStatus('Código lido. Toque em "Enviar dados".');
+
+  try {
+    const dadosNFe = extrairDadosDaChaveNFe(code);
+    currentCode = dadosNFe.chave;
+    currentNFeData = dadosNFe;
+    lastCode.textContent = dadosNFe.chave;
+    cnpjInput.value = dadosNFe.cnpj;
+    numeroNotaInput.value = dadosNFe.numeroNotaExibicao;
+    sendBtn.disabled = false;
+    stopCamera(false);
+    readStatus.textContent = 'Chave da NF-e lida com sucesso.';
+    setStatus('Chave da NF-e válida. Toque em "Enviar dados".');
+  } catch (error) {
+    limparDadosNFe();
+    readStatus.textContent = error.message;
+    setStatus(error.message);
+    showFeedback(error.message, 'error');
+  }
 }
 
 async function scanLoop() {
