@@ -8,6 +8,12 @@ const telefoneInput = document.getElementById('telefoneInput');
 const placaInput = document.getElementById('placaInput');
 const cnpjInput = document.getElementById('cnpjInput');
 const numeroNotaInput = document.getElementById('numeroNotaInput');
+const fornecedorInput = document.getElementById('fornecedorInput');
+const colaboradorRecebimentoSelect = document.getElementById('colaboradorRecebimentoSelect');
+const pesoInput = document.getElementById('pesoInput');
+const patioDescargaSelect = document.getElementById('patioDescargaSelect');
+const dataRecebimentoInput = document.getElementById('dataRecebimentoInput');
+const placaRecebimentoInput = document.getElementById('placaRecebimentoInput');
 const lastCode = document.getElementById('lastCode');
 const statusOutput = document.getElementById('statusOutput');
 const readStatus = document.getElementById('readStatus');
@@ -31,6 +37,12 @@ let currentNFeData = null;
 let endpoint = '/api/ingest/records';
 
 const FIXED_TERMINAL = 'TCS';
+const CONFIG_URL = '/config/app-config.json';
+const appConfig = {
+  fornecedoresPorCnpj: {},
+  colaboradoresRecebimento: [],
+  patiosDescarga: []
+};
 const QUEUE_KEY = 'pendingBarcodePayloads';
 const WARNING_THRESHOLD = 100;
 const HISTORY_KEY = 'barcodeSendHistory';
@@ -44,6 +56,51 @@ function createId() {
 
 function setStatus(message) {
   statusOutput.textContent = message;
+}
+
+function normalizarCnpj(cnpj) {
+  return String(cnpj || '').replace(/\D/g, '');
+}
+
+function normalizarMapaFornecedores(fornecedoresPorCnpj = {}) {
+  return Object.entries(fornecedoresPorCnpj).reduce((mapa, [cnpj, fornecedor]) => {
+    const cnpjNormalizado = normalizarCnpj(cnpj);
+    if (cnpjNormalizado && fornecedor) mapa[cnpjNormalizado] = fornecedor;
+    return mapa;
+  }, {});
+}
+
+function preencherSelect(select, opcoes, textoInicial) {
+  select.innerHTML = '';
+
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = textoInicial;
+  select.appendChild(placeholder);
+
+  opcoes.forEach((opcao) => {
+    const option = document.createElement('option');
+    option.value = opcao;
+    option.textContent = opcao;
+    select.appendChild(option);
+  });
+}
+
+async function loadAppConfig() {
+  try {
+    const response = await fetch(CONFIG_URL, { cache: 'no-store' });
+    if (!response.ok) throw new Error('Configuração do app indisponível.');
+
+    const config = await response.json();
+    appConfig.fornecedoresPorCnpj = normalizarMapaFornecedores(config.fornecedoresPorCnpj);
+    appConfig.colaboradoresRecebimento = Array.isArray(config.colaboradoresRecebimento) ? config.colaboradoresRecebimento : [];
+    appConfig.patiosDescarga = Array.isArray(config.patiosDescarga) ? config.patiosDescarga : [];
+  } catch (error) {
+    setStatus(`Configuração do app não carregada: ${error.message}`);
+  }
+
+  preencherSelect(colaboradorRecebimentoSelect, appConfig.colaboradoresRecebimento, 'Selecione o colaborador');
+  preencherSelect(patioDescargaSelect, appConfig.patiosDescarga, 'Selecione o pátio');
 }
 
 function showFeedback(message, type = 'info') {
@@ -162,12 +219,18 @@ function validarChaveNFe(chave) {
   return chaveLimpa;
 }
 
+function buscarFornecedorPorCnpj(cnpj) {
+  return appConfig.fornecedoresPorCnpj[normalizarCnpj(cnpj)] || '';
+}
+
 function extrairDadosDaChaveNFe(chave) {
   const chaveLimpa = validarChaveNFe(chave);
+  const cnpj = chaveLimpa.slice(6, 20);
 
   return {
     chave: chaveLimpa,
-    cnpj: chaveLimpa.slice(6, 20),
+    cnpj,
+    fornecedor: buscarFornecedorPorCnpj(cnpj),
     numeroNota: chaveLimpa.slice(25, 34),
     numeroNotaExibicao: chaveLimpa.slice(25, 34).replace(/^0+/, '') || '0'
   };
@@ -179,6 +242,7 @@ function limparDadosNFe() {
   lastCode.textContent = 'Nenhum';
   cnpjInput.value = '';
   numeroNotaInput.value = '';
+  fornecedorInput.value = '';
   sendBtn.disabled = true;
 }
 
@@ -304,6 +368,11 @@ async function sendCode() {
   const nomeMotorista = nomeMotoristaInput.value.trim();
   const telefone = telefoneInput.value.trim();
   const placa = placaInput.value.trim();
+  const colaboradorRecebimento = colaboradorRecebimentoSelect.value;
+  const peso = pesoInput.value.trim();
+  const patioDescarga = patioDescargaSelect.value;
+  const dataRecebimento = dataRecebimentoInput.value;
+  const placaRecebimento = placaRecebimentoInput.value.trim();
 
   const payload = {
     dataHora: formatDateTime(),
@@ -314,14 +383,23 @@ async function sendCode() {
       status: 'Pendente'
     },
     emitente: {
-      cnpj: currentNFeData.cnpj
+      cnpj: currentNFeData.cnpj,
+      fornecedor: currentNFeData.fornecedor
     },
     motorista: {
       nome: nomeMotorista,
       celular: telefone
     },
     veiculo: {
-      placa
+      placa,
+      placaRecebimento
+    },
+    recebimento: {
+      colaborador: colaboradorRecebimento,
+      peso,
+      patioDescarga,
+      data: dataRecebimento,
+      placa: placaRecebimento
     },
     terminal: FIXED_TERMINAL
   };
@@ -361,10 +439,11 @@ function onDetected(code) {
     lastCode.textContent = dadosNFe.chave;
     cnpjInput.value = dadosNFe.cnpj;
     numeroNotaInput.value = dadosNFe.numeroNotaExibicao;
+    fornecedorInput.value = dadosNFe.fornecedor || 'Fornecedor não mapeado';
     sendBtn.disabled = false;
     stopCamera(false);
     readStatus.textContent = 'Chave da NF-e lida com sucesso.';
-    setStatus('Chave da NF-e válida. Toque em "Enviar dados".');
+    setStatus(dadosNFe.fornecedor ? 'Chave da NF-e válida. Fornecedor identificado. Toque em "Enviar dados".' : 'Chave da NF-e válida, mas o fornecedor não está mapeado. Toque em "Enviar dados".');
   } catch (error) {
     limparDadosNFe();
     readStatus.textContent = error.message;
@@ -496,6 +575,8 @@ scannerTabBtn.addEventListener('click', () => switchTab('scanner'));
 historyTabBtn.addEventListener('click', () => switchTab('history'));
 
 window.addEventListener('online', flushQueue);
+
+loadAppConfig();
 
 const initialQueue = readQueue();
 updateOfflineWarning(initialQueue.length);

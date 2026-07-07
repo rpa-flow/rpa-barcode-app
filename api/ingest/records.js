@@ -1,5 +1,52 @@
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+
 const TARGET_URL = 'https://terminal-ops-web.vercel.app/api/ingest/records';
 const API_KEY = '5f7a2c9e1b3d6f8a4c2e9d1f7b5a3c6e8d2f4b1a9c7e5d3f6a8b2c1e9d4f7a5c';
+const CONFIG_PATH = path.join(process.cwd(), 'config', 'app-config.json');
+let configCache;
+
+function normalizarCnpj(cnpj) {
+  return String(cnpj || '').replace(/\D/g, '');
+}
+
+function normalizarMapaFornecedores(fornecedoresPorCnpj = {}) {
+  return Object.entries(fornecedoresPorCnpj).reduce((mapa, [cnpj, fornecedor]) => {
+    const cnpjNormalizado = normalizarCnpj(cnpj);
+    if (cnpjNormalizado && fornecedor) mapa[cnpjNormalizado] = fornecedor;
+    return mapa;
+  }, {});
+}
+
+async function carregarConfig() {
+  if (configCache) return configCache;
+
+  const rawConfig = await readFile(CONFIG_PATH, 'utf8');
+  const config = JSON.parse(rawConfig);
+  configCache = {
+    fornecedoresPorCnpj: normalizarMapaFornecedores(config.fornecedoresPorCnpj)
+  };
+
+  return configCache;
+}
+
+async function buscarFornecedorPorCnpj(cnpj) {
+  const config = await carregarConfig();
+  return config.fornecedoresPorCnpj[normalizarCnpj(cnpj)] || '';
+}
+
+async function enriquecerPayloadComFornecedor(payload) {
+  const safePayload = payload && typeof payload === 'object' ? { ...payload } : {};
+  const emitente = safePayload.emitente && typeof safePayload.emitente === 'object' ? { ...safePayload.emitente } : {};
+  const fornecedor = emitente.fornecedor || await buscarFornecedorPorCnpj(emitente.cnpj);
+
+  safePayload.emitente = {
+    ...emitente,
+    fornecedor
+  };
+
+  return safePayload;
+}
 
 export default async function handler(request, response) {
   response.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,6 +62,7 @@ export default async function handler(request, response) {
   }
 
   try {
+    const payload = await enriquecerPayloadComFornecedor(request.body || {});
     const upstreamResponse = await fetch(TARGET_URL, {
       method: 'POST',
       headers: {
@@ -22,7 +70,7 @@ export default async function handler(request, response) {
         'x-api-key': API_KEY,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(request.body || {})
+      body: JSON.stringify(payload)
     });
 
     const rawBody = await upstreamResponse.text();
