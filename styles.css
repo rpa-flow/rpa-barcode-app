@@ -68,7 +68,8 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-input {
+input,
+select {
   width: 100%;
   padding: 10px;
   border-radius: 8px;

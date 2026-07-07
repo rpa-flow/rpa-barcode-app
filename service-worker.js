@@ -1,9 +1,10 @@
-const CACHE_NAME = 'barcode-app-v1';
+const CACHE_NAME = 'barcode-app-v2';
 const ASSETS = [
   '/',
   '/index.html',
   '/styles.css',
   '/app.js',
+  '/config/app-config.json',
   '/manifest.webmanifest',
   '/icons/icon-192.svg',
   '/icons/icon-512.svg'
