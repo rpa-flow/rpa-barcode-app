@@ -13,7 +13,6 @@ const colaboradorRecebimentoSelect = document.getElementById('colaboradorRecebim
 const pesoInput = document.getElementById('pesoInput');
 const patioDescargaSelect = document.getElementById('patioDescargaSelect');
 const dataRecebimentoInput = document.getElementById('dataRecebimentoInput');
-const placaRecebimentoInput = document.getElementById('placaRecebimentoInput');
 const lastCode = document.getElementById('lastCode');
 const statusOutput = document.getElementById('statusOutput');
 const readStatus = document.getElementById('readStatus');
@@ -375,7 +374,6 @@ async function sendCode() {
   const peso = pesoInput.value.trim();
   const patioDescarga = patioDescargaSelect.value;
   const dataRecebimento = dataRecebimentoInput.value;
-  const placaRecebimento = placaRecebimentoInput.value.trim();
 
   const payload = {
     dataHora: formatDateTime(),
@@ -394,15 +392,13 @@ async function sendCode() {
       celular: telefone
     },
     veiculo: {
-      placa,
-      placaRecebimento
+      placa
     },
     recebimento: {
       colaborador: colaboradorRecebimento,
       peso,
       patioDescarga,
-      data: dataRecebimento,
-      placa: placaRecebimento
+      data: dataRecebimento
     },
     terminal: FIXED_TERMINAL
   };
