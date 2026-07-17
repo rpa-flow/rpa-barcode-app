@@ -40,6 +40,7 @@ const FIXED_TERMINAL = 'TCS';
 const CONFIG_URL = '/config/app-config.json';
 const appConfig = {
   fornecedoresPorCnpj: {},
+  fornecedores: [],
   colaboradoresRecebimento: [],
   patiosDescarga: []
 };
@@ -93,12 +94,14 @@ async function loadAppConfig() {
 
     const config = await response.json();
     appConfig.fornecedoresPorCnpj = normalizarMapaFornecedores(config.fornecedoresPorCnpj);
+    appConfig.fornecedores = Array.isArray(config.fornecedores) ? config.fornecedores : [];
     appConfig.colaboradoresRecebimento = Array.isArray(config.colaboradoresRecebimento) ? config.colaboradoresRecebimento : [];
     appConfig.patiosDescarga = Array.isArray(config.patiosDescarga) ? config.patiosDescarga : [];
   } catch (error) {
     setStatus(`Configuração do app não carregada: ${error.message}`);
   }
 
+  preencherSelect(fornecedorInput, appConfig.fornecedores, 'Selecione o fornecedor');
   preencherSelect(colaboradorRecebimentoSelect, appConfig.colaboradoresRecebimento, 'Selecione o colaborador');
   preencherSelect(patioDescargaSelect, appConfig.patiosDescarga, 'Selecione o pátio');
 }
@@ -384,7 +387,7 @@ async function sendCode() {
     },
     emitente: {
       cnpj: currentNFeData.cnpj,
-      fornecedor: currentNFeData.fornecedor
+      fornecedor: fornecedorInput.value || currentNFeData.fornecedor
     },
     motorista: {
       nome: nomeMotorista,
@@ -439,7 +442,7 @@ function onDetected(code) {
     lastCode.textContent = dadosNFe.chave;
     cnpjInput.value = dadosNFe.cnpj;
     numeroNotaInput.value = dadosNFe.numeroNotaExibicao;
-    fornecedorInput.value = dadosNFe.fornecedor || 'Fornecedor não mapeado';
+    fornecedorInput.value = appConfig.fornecedores.includes(dadosNFe.fornecedor) ? dadosNFe.fornecedor : '';
     sendBtn.disabled = false;
     stopCamera(false);
     readStatus.textContent = 'Chave da NF-e lida com sucesso.';

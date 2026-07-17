@@ -16,13 +16,44 @@
     "42.525.894/0001-83": "SPE MSA TRINDADE MINERACAO LTDA"
   },
   "colaboradoresRecebimento": [
-    "Colaborador 1",
-    "Colaborador 2",
-    "Colaborador 3"
+    "Eloizio Willian",
+    "Joao Paulo",
+    "Higor Pierri",
+    "Pedro Cristian",
+    "Lucinei da Silva",
+    "Wevergton Labbate",
+    "Rafael Coutinho",
+    "Cristiano Rezende",
+    "Suellen Fernanda",
+    "Kauan Junior",
+    "Joni Barroso",
+    "Marcos Antonio"
   ],
   "patiosDescarga": [
-    "Pátio 1",
-    "Pátio 2",
-    "Pátio 3"
+    "Pátio Balança",
+    "Pátio Coqueiro",
+    "Pátio Oficina",
+    "Rota Vermelha",
+    "Rota Laranja",
+    "Rota Verde",
+    "Rota Amarela"
+  ],
+  "fornecedores": [
+    "FERRO BAYA FINOS - PILHA 1",
+    "MSM SF/ CONCENTRADO - PILHA 4",
+    "FERRO BAYA SINTER FEED - PILHA 4",
+    "FM - PILHA 4",
+    "CBMM - PILHA 4",
+    "MINERAL DO BRASIL CONCENTRADO - PILHA 5",
+    "RS MINERAÇÃO - PILHA 1",
+    "NOGUEIRA DUARTE - PILHA 1",
+    "LAC - PILHA 4",
+    "MSA TRINDADE - PILHA 4",
+    "SIDERCAM - PILHA1",
+    "MONTE CRISTO - PILHA 1",
+    "SCAVARE - PILHA 4",
+    "ATLAS - PILHA 1",
+    "ALTEROSA - PILHA 1",
+    "COMISA - PILHA 1"
   ]
 }
