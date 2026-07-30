@@ -23,36 +23,56 @@
           <p id="readStatus" class="read-status">Nenhuma leitura realizada.</p>
         </section>
 
-        <section class="panel">
-          <label for="nomeMotoristaInput">Nome motorista</label>
-          <input id="nomeMotoristaInput" type="text" placeholder="Ex.: João da Silva" />
+        <section class="panel form-panel">
+          <div class="form-field">
+            <label for="nomeMotoristaInput">Nome motorista</label>
+            <input id="nomeMotoristaInput" type="text" placeholder="Ex.: João da Silva" />
+          </div>
 
-          <label for="telefoneInput">Telefone</label>
-          <input id="telefoneInput" type="tel" placeholder="Ex.: (11) 99999-9999" />
+          <div class="form-field">
+            <label for="telefoneInput">Telefone</label>
+            <input id="telefoneInput" type="tel" placeholder="Ex.: (11) 99999-9999" />
+          </div>
 
-          <label for="placaInput">Placa</label>
-          <input id="placaInput" type="text" placeholder="Ex.: ABC1D23" />
+          <div class="form-field">
+            <label for="placaInput">Placa</label>
+            <input id="placaInput" type="text" placeholder="Ex.: ABC1D23" />
+          </div>
 
-          <label for="cnpjInput">CNPJ do emitente (extraído da chave)</label>
-          <input id="cnpjInput" type="text" placeholder="Lido automaticamente" readonly />
+          <div class="form-field">
+            <label for="cnpjInput">CNPJ do emitente (extraído da chave)</label>
+            <input id="cnpjInput" type="text" placeholder="Lido automaticamente" readonly />
+          </div>
 
-          <label for="numeroNotaInput">Número da nota (extraído da chave)</label>
-          <input id="numeroNotaInput" type="text" placeholder="Lido automaticamente" readonly />
+          <div class="form-field">
+            <label for="numeroNotaInput">Número da nota (extraído da chave)</label>
+            <input id="numeroNotaInput" type="text" placeholder="Lido automaticamente" readonly />
+          </div>
 
-          <label for="fornecedorInput">Fornecedor</label>
-          <select id="fornecedorInput"></select>
+          <div class="form-field">
+            <label for="fornecedorInput">Fornecedor</label>
+            <select id="fornecedorInput"></select>
+          </div>
 
-          <label for="colaboradorRecebimentoSelect">Nome do colaborador que recebeu</label>
-          <select id="colaboradorRecebimentoSelect"></select>
+          <div class="form-field">
+            <label for="colaboradorRecebimentoSelect">Nome do colaborador que recebeu</label>
+            <select id="colaboradorRecebimentoSelect"></select>
+          </div>
 
-          <label for="pesoInput">Peso</label>
-          <input id="pesoInput" type="number" inputmode="decimal" min="0" step="0.001" placeholder="Ex.: 12500" />
+          <div class="form-field">
+            <label for="pesoInput">Peso</label>
+            <input id="pesoInput" type="number" inputmode="decimal" min="0" step="0.001" placeholder="Ex.: 12500" />
+          </div>
 
-          <label for="patioDescargaSelect">Pátio de descarga</label>
-          <select id="patioDescargaSelect"></select>
+          <div class="form-field">
+            <label for="patioDescargaSelect">Pátio de descarga</label>
+            <select id="patioDescargaSelect"></select>
+          </div>
 
-          <label for="dataRecebimentoInput">Data de recebimento</label>
-          <input id="dataRecebimentoInput" type="date" />
+          <div class="form-field">
+            <label for="dataRecebimentoInput">Data de recebimento</label>
+            <input id="dataRecebimentoInput" type="date" />
+          </div>
         </section>
 
         <section class="panel result">
