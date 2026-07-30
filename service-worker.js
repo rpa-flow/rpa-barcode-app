@@ -1,4 +1,4 @@
-const CACHE_NAME = 'barcode-app-v3';
+const CACHE_NAME = 'barcode-app-v5';
 const ASSETS = [
   '/',
   '/index.html',
@@ -24,5 +24,19 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  event.respondWith(caches.match(event.request).then((res) => res || fetch(event.request)));
+
+  event.respondWith(
+    (async () => {
+      try {
+        const response = await fetch(event.request);
+        if (response.ok) {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(event.request, response.clone());
+        }
+        return response;
+      } catch {
+        return (await caches.match(event.request)) || Response.error();
+      }
+    })()
+  );
 });
