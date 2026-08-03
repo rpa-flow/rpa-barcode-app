@@ -3,8 +3,6 @@ const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const sendBtn = document.getElementById('sendBtn');
 const installBtn = document.getElementById('installBtn');
-const nomeMotoristaInput = document.getElementById('nomeMotoristaInput');
-const telefoneInput = document.getElementById('telefoneInput');
 const placaInput = document.getElementById('placaInput');
 const cnpjInput = document.getElementById('cnpjInput');
 const numeroNotaInput = document.getElementById('numeroNotaInput');
@@ -367,8 +365,6 @@ async function sendCode() {
     return;
   }
 
-  const nomeMotorista = nomeMotoristaInput.value.trim();
-  const telefone = telefoneInput.value.trim();
   const placa = placaInput.value.trim();
   const colaboradorRecebimento = colaboradorRecebimentoSelect.value;
   const peso = pesoInput.value.trim();
@@ -386,10 +382,6 @@ async function sendCode() {
     emitente: {
       cnpj: currentNFeData.cnpj,
       fornecedor: fornecedorInput.value || currentNFeData.fornecedor
-    },
-    motorista: {
-      nome: nomeMotorista,
-      celular: telefone
     },
     veiculo: {
       placa
