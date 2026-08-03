@@ -2,6 +2,9 @@
 
 Aplicativo de leitura de código de barras com câmera + POST HTTP.
 
+O formulário de recebimento não solicita nome nem telefone do motorista, e esses
+dados não fazem parte do payload enviado ao endpoint.
+
 ## Rodando localmente (desktop)
 
 1. Inicie um servidor HTTP na pasta do projeto:
