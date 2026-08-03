@@ -42,8 +42,7 @@ video {
 .read-status { grid-column: 1 / -1; margin: 2px 0 0; font-size: 14px; font-weight: 600; }
 
 .form-panel {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .form-field {
@@ -141,7 +140,6 @@ input[readonly] {
   body { padding: 8px; }
   .container { border-radius: 12px; }
   .action-panel { grid-template-columns: 1fr; }
-  .form-panel { grid-template-columns: 1fr; }
   .tab-menu { padding: 8px; }
 }
 
