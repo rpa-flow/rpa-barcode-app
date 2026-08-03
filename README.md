@@ -2,6 +2,10 @@
 
 Aplicativo de leitura de código de barras com câmera + POST HTTP.
 
+Os dados preenchidos no app são enviados pelo proxy `/api/ingest/notes` para a
+API de notas do Terminal Ops. O proxy adiciona a chave de autenticação no
+servidor, sem expô-la na requisição feita pelo navegador.
+
 O formulário de recebimento não solicita nome nem telefone do motorista, e esses
 dados não fazem parte do payload enviado ao endpoint.
 

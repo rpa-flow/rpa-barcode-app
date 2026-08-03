@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-const TARGET_URL = 'https://terminal-ops-web.vercel.app/api/ingest/records';
+const TARGET_URL = 'https://terminal-ops-web.vercel.app/api/ingest/notes';
 const API_KEY = '5f7a2c9e1b3d6f8a4c2e9d1f7b5a3c6e8d2f4b1a9c7e5d3f6a8b2c1e9d4f7a5c';
 const CONFIG_PATH = path.join(process.cwd(), 'config', 'app-config.json');
 let configCache;
