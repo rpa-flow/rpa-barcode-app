@@ -31,7 +31,7 @@ let zxingReader;
 let zxingControls;
 let currentCode = '';
 let currentNFeData = null;
-let endpoint = '/api/ingest/records';
+let endpoint = '/api/ingest/notes';
 
 const FIXED_TERMINAL = 'TCS';
 const CONFIG_URL = '/config/app-config.json';
