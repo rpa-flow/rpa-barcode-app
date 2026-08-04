@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-const TARGET_URL = 'https://terminal-ops-web.vercel.app/api/ingest/notes';
-const API_KEY = '5f7a2c9e1b3d6f8a4c2e9d1f7b5a3c6e8d2f4b1a9c7e5d3f6a8b2c1e9d4f7a5c';
+const DEFAULT_TARGET_URL = 'https://terminal-ops-web.vercel.app/api/ingest/notes';
+const DEFAULT_API_KEY = '5f7a2c9e1b3d6f8a4c2e9d1f7b5a3c6e8d2f4b1a9c7e5d3f6a8b2c1e9d4f7a5c';
 const CONFIG_PATH = path.join(process.cwd(), 'config', 'app-config.json');
 let configCache;
 
@@ -62,12 +62,14 @@ export default async function handler(request, response) {
   }
 
   try {
+    const targetUrl = (process.env.POST_URL || DEFAULT_TARGET_URL).trim();
+    const apiKey = (process.env.NOTES_API_KEY || DEFAULT_API_KEY).trim();
     const payload = await enriquecerPayloadComFornecedor(request.body || {});
-    const upstreamResponse = await fetch(TARGET_URL, {
+    const upstreamResponse = await fetch(targetUrl, {
       method: 'POST',
       headers: {
         accept: 'application/json',
-        'x-api-key': API_KEY,
+        'x-api-key': apiKey,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)

@@ -1,6 +1,7 @@
 :root {
   color-scheme: light dark;
   font-family: Arial, sans-serif;
+  overflow-x: hidden;
 }
 
 * {
@@ -9,12 +10,17 @@
 
 body {
   margin: 0;
-  padding: 20px;
+  width: 100%;
+  min-width: 0;
+  min-height: 100dvh;
+  padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  overflow-x: hidden;
   background: linear-gradient(180deg, #f2f5ff 0%, #eaf7f2 100%);
 }
 
 .container {
   width: min(100%, 720px);
+  min-width: 0;
   margin: 0 auto;
   display: grid;
   gap: 14px;
@@ -37,7 +43,7 @@ video {
   border: 2px solid rgba(0, 0, 0, 0.12);
 }
 
-.panel { display: grid; gap: 8px; padding: 12px; border-radius: 10px; background: rgba(127, 127, 127, 0.1); }
+.panel { min-width: 0; display: grid; gap: 8px; padding: 12px; border-radius: 10px; background: rgba(127, 127, 127, 0.1); }
 .action-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; }
 .read-status { grid-column: 1 / -1; margin: 2px 0 0; font-size: 14px; font-weight: 600; }
 
@@ -98,13 +104,15 @@ input[readonly] {
   cursor: not-allowed;
 }
 
-.result span { font-size: 18px; font-weight: 700; }
+.result span { min-width: 0; font-size: 18px; font-weight: 700; overflow-wrap: anywhere; }
 .status p { margin: 0; font-weight: 600; word-break: break-word; }
 
 .feedback-banner {
+  min-width: 0;
   padding: 10px 12px;
   border-radius: 10px;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 .feedback-banner.success { background: rgba(50, 168, 82, 0.2); border: 1px solid #2e9b4f; }
 .feedback-banner.error { background: rgba(209, 58, 58, 0.2); border: 1px solid #c92a2a; }
@@ -115,7 +123,7 @@ input[readonly] {
 .offline-warning p, .history-hint { margin: 0; line-height: 1.4; }
 
 .history-list { display: grid; gap: 10px; margin-top: 10px; }
-.history-item { display: grid; gap: 4px; padding: 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.7); }
+.history-item { min-width: 0; display: grid; gap: 4px; padding: 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.7); overflow-wrap: anywhere; }
 .retry-btn { width: fit-content; background: #d77b00; }
 
 .app-header, .app-tab-content { display: grid; gap: 10px; }
@@ -137,8 +145,8 @@ input[readonly] {
 .tab-btn.active { background: #2d6df6; color: #fff; }
 
 @media (max-width: 520px) {
-  body { padding: 8px; }
-  .container { border-radius: 12px; }
+  body { padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
+  .container { padding: 10px; border-radius: 12px; }
   .action-panel { grid-template-columns: 1fr; }
   .tab-menu { padding: 8px; }
 }
