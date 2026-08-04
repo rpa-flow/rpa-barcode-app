@@ -10,3 +10,10 @@ test('exibe um campo do formulário por linha em qualquer largura de tela', () =
   assert.match(formPanelRule, /grid-template-columns:\s*minmax\(0,\s*1fr\)/);
   assert.doesNotMatch(formPanelRule, /repeat\(2/);
 });
+
+test('conteúdo longo não ultrapassa a largura da tela do celular', () => {
+  assert.match(styles, /\.container\s*{[^}]*min-width:\s*0/s);
+  assert.match(styles, /\.result span\s*{[^}]*overflow-wrap:\s*anywhere/s);
+  assert.match(styles, /\.feedback-banner\s*{[^}]*overflow-wrap:\s*anywhere/s);
+  assert.match(styles, /env\(safe-area-inset-right\)/);
+});

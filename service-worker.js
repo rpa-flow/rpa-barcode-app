@@ -1,4 +1,4 @@
-const CACHE_NAME = 'barcode-app-v6';
+const CACHE_NAME = 'barcode-app-v7';
 const ASSETS = [
   '/',
   '/index.html',

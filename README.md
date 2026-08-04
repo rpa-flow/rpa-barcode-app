@@ -123,13 +123,15 @@ Se o aparelho ficar sem internet no momento do envio:
 ## Publicação no Vercel
 
 1. Crie um projeto no Vercel apontando para este repositório.
-2. Em **Settings > Environment Variables**, crie a variável:
+2. Em **Settings > Environment Variables**, crie a variável com a URL atual da API de notas:
 
 ```text
-POST_URL=https://seu-endpoint.com/api/barcode
+POST_URL=https://seu-endpoint.com/api/ingest/notes
 ```
 
 3. Faça o deploy. O app ficará em HTTPS automaticamente (necessário para câmera e instalação PWA).
 4. Abra a URL no Android e use **Instalar aplicativo** para adicionar na tela inicial.
 
 > Em ambiente local, o app ainda aceita fallback via arquivo `.env`.
+> O proxy usa o endereço padrão somente quando `POST_URL` não foi definida. Assim, uma mudança
+> de domínio da API pode ser corrigida pela variável de ambiente, sem alterar o aplicativo.
