@@ -80,6 +80,7 @@ button {
 
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 #stopBtn { background: #444; }
+#manualModeBtn { background: #6d4edb; }
 #sendBtn { background: #0b8a57; display: inline-flex; justify-content: center; align-items: center; gap: 8px; }
 
 .btn-loader {

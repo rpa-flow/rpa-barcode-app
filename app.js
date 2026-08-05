@@ -2,6 +2,8 @@ const preview = document.getElementById('preview');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const sendBtn = document.getElementById('sendBtn');
+const manualModeBtn = document.getElementById('manualModeBtn');
+const manualCodeField = document.getElementById('manualCodeField');
 const manualCodeInput = document.getElementById('manualCodeInput');
 const manualCodeBtn = document.getElementById('manualCodeBtn');
 const installBtn = document.getElementById('installBtn');
@@ -467,6 +469,18 @@ function onDetected(code) {
   }
 }
 
+function showManualCodeInput() {
+  stopCamera(false);
+  manualCodeField.hidden = false;
+  manualCodeInput.focus();
+  readStatus.textContent = 'Digite a chave do CT-e/NF-e e toque em "Usar código".';
+  setStatus('Modo manual selecionado. Digite a chave do CT-e/NF-e.');
+}
+
+function hideManualCodeInput() {
+  manualCodeField.hidden = true;
+}
+
 function useManualCode() {
   const typedCode = manualCodeInput.value.trim();
 
@@ -529,6 +543,7 @@ async function startWithZXing() {
 }
 
 async function startCamera() {
+  hideManualCodeInput();
   readStatus.textContent = 'Aguardando leitura...';
   if (!navigator.mediaDevices?.getUserMedia) {
     setStatus('Este navegador não suporta acesso à câmera.');
@@ -596,6 +611,7 @@ historyList.addEventListener('click', (event) => {
 });
 
 startBtn.addEventListener('click', startCamera);
+manualModeBtn.addEventListener('click', showManualCodeInput);
 stopBtn.addEventListener('click', stopCamera);
 manualCodeBtn.addEventListener('click', useManualCode);
 manualCodeInput.addEventListener('keydown', (event) => {
