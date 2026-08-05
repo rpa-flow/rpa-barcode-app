@@ -2,6 +2,10 @@ const preview = document.getElementById('preview');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const sendBtn = document.getElementById('sendBtn');
+const manualModeBtn = document.getElementById('manualModeBtn');
+const manualCodeField = document.getElementById('manualCodeField');
+const manualCodeInput = document.getElementById('manualCodeInput');
+const manualCodeBtn = document.getElementById('manualCodeBtn');
 const installBtn = document.getElementById('installBtn');
 const placaInput = document.getElementById('placaInput');
 const cnpjInput = document.getElementById('cnpjInput');
@@ -82,6 +86,26 @@ function preencherSelect(select, opcoes, textoInicial) {
     option.textContent = opcao;
     select.appendChild(option);
   });
+}
+
+function selecionarFornecedorPorCnpj(cnpj) {
+  const fornecedor = buscarFornecedorPorCnpj(cnpj);
+
+  if (!fornecedor) {
+    fornecedorInput.value = '';
+    return '';
+  }
+
+  const optionExists = Array.from(fornecedorInput.options).some((option) => option.value === fornecedor);
+  if (!optionExists) {
+    const option = document.createElement('option');
+    option.value = fornecedor;
+    option.textContent = fornecedor;
+    fornecedorInput.appendChild(option);
+  }
+
+  fornecedorInput.value = fornecedor;
+  return fornecedor;
 }
 
 async function loadAppConfig() {
@@ -421,26 +445,53 @@ async function sendCode() {
 }
 
 function onDetected(code) {
-  if (!code || code === currentCode) return;
+  const rawCode = String(code || '').trim();
+  if (!rawCode || rawCode === currentCode) return;
 
   try {
-    const dadosNFe = extrairDadosDaChaveNFe(code);
+    const dadosNFe = extrairDadosDaChaveNFe(rawCode);
     currentCode = dadosNFe.chave;
     currentNFeData = dadosNFe;
     lastCode.textContent = dadosNFe.chave;
+    manualCodeInput.value = dadosNFe.chave;
     cnpjInput.value = dadosNFe.cnpj;
     numeroNotaInput.value = dadosNFe.numeroNotaExibicao;
-    fornecedorInput.value = appConfig.fornecedores.includes(dadosNFe.fornecedor) ? dadosNFe.fornecedor : '';
+    const fornecedorSelecionado = selecionarFornecedorPorCnpj(dadosNFe.cnpj);
     sendBtn.disabled = false;
     stopCamera(false);
     readStatus.textContent = 'Chave da NF-e lida com sucesso.';
-    setStatus(dadosNFe.fornecedor ? 'Chave da NF-e válida. Fornecedor identificado. Toque em "Enviar dados".' : 'Chave da NF-e válida, mas o fornecedor não está mapeado. Toque em "Enviar dados".');
+    setStatus(fornecedorSelecionado ? 'Chave do CT-e/NF-e válida. Fornecedor preenchido pelo CNPJ. Toque em "Enviar dados".' : 'Chave do CT-e/NF-e válida, mas o fornecedor não está mapeado para este CNPJ. Toque em "Enviar dados".');
   } catch (error) {
     limparDadosNFe();
     readStatus.textContent = error.message;
     setStatus(error.message);
     showFeedback(error.message, 'error');
   }
+}
+
+function showManualCodeInput() {
+  stopCamera(false);
+  manualCodeField.hidden = false;
+  manualCodeInput.focus();
+  readStatus.textContent = 'Digite a chave do CT-e/NF-e e toque em "Usar código".';
+  setStatus('Modo manual selecionado. Digite a chave do CT-e/NF-e.');
+}
+
+function hideManualCodeInput() {
+  manualCodeField.hidden = true;
+}
+
+function useManualCode() {
+  const typedCode = manualCodeInput.value.trim();
+
+  if (!typedCode) {
+    readStatus.textContent = 'Digite uma chave da NF-e para usar o código manual.';
+    setStatus('Digite uma chave da NF-e para usar o código manual.');
+    showFeedback('Digite uma chave da NF-e para usar o código manual.', 'error');
+    return;
+  }
+
+  onDetected(typedCode);
 }
 
 async function scanLoop() {
@@ -492,6 +543,7 @@ async function startWithZXing() {
 }
 
 async function startCamera() {
+  hideManualCodeInput();
   readStatus.textContent = 'Aguardando leitura...';
   if (!navigator.mediaDevices?.getUserMedia) {
     setStatus('Este navegador não suporta acesso à câmera.');
@@ -559,7 +611,12 @@ historyList.addEventListener('click', (event) => {
 });
 
 startBtn.addEventListener('click', startCamera);
+manualModeBtn.addEventListener('click', showManualCodeInput);
 stopBtn.addEventListener('click', stopCamera);
+manualCodeBtn.addEventListener('click', useManualCode);
+manualCodeInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') useManualCode();
+});
 sendBtn.addEventListener('click', sendCode);
 
 scannerTabBtn.addEventListener('click', () => switchTab('scanner'));

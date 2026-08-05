@@ -46,6 +46,9 @@ video {
 .panel { min-width: 0; display: grid; gap: 8px; padding: 12px; border-radius: 10px; background: rgba(127, 127, 127, 0.1); }
 .action-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; }
 .read-status { grid-column: 1 / -1; margin: 2px 0 0; font-size: 14px; font-weight: 600; }
+.manual-code-field { grid-column: 1 / -1; display: grid; gap: 6px; }
+.manual-code-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.manual-code-controls button { width: auto; white-space: nowrap; }
 
 .form-panel {
   grid-template-columns: minmax(0, 1fr);
@@ -77,6 +80,7 @@ button {
 
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 #stopBtn { background: #444; }
+#manualModeBtn { background: #6d4edb; }
 #sendBtn { background: #0b8a57; display: inline-flex; justify-content: center; align-items: center; gap: 8px; }
 
 .btn-loader {
@@ -148,6 +152,8 @@ input[readonly] {
   body { padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
   .container { padding: 10px; border-radius: 12px; }
   .action-panel { grid-template-columns: 1fr; }
+  .manual-code-controls { grid-template-columns: 1fr; }
+  .manual-code-controls button { width: 100%; }
   .tab-menu { padding: 8px; }
 }
 
