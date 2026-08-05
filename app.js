@@ -86,6 +86,26 @@ function preencherSelect(select, opcoes, textoInicial) {
   });
 }
 
+function selecionarFornecedorPorCnpj(cnpj) {
+  const fornecedor = buscarFornecedorPorCnpj(cnpj);
+
+  if (!fornecedor) {
+    fornecedorInput.value = '';
+    return '';
+  }
+
+  const optionExists = Array.from(fornecedorInput.options).some((option) => option.value === fornecedor);
+  if (!optionExists) {
+    const option = document.createElement('option');
+    option.value = fornecedor;
+    option.textContent = fornecedor;
+    fornecedorInput.appendChild(option);
+  }
+
+  fornecedorInput.value = fornecedor;
+  return fornecedor;
+}
+
 async function loadAppConfig() {
   try {
     const response = await fetch(CONFIG_URL, { cache: 'no-store' });
@@ -434,11 +454,11 @@ function onDetected(code) {
     manualCodeInput.value = dadosNFe.chave;
     cnpjInput.value = dadosNFe.cnpj;
     numeroNotaInput.value = dadosNFe.numeroNotaExibicao;
-    fornecedorInput.value = appConfig.fornecedores.includes(dadosNFe.fornecedor) ? dadosNFe.fornecedor : '';
+    const fornecedorSelecionado = selecionarFornecedorPorCnpj(dadosNFe.cnpj);
     sendBtn.disabled = false;
     stopCamera(false);
     readStatus.textContent = 'Chave da NF-e lida com sucesso.';
-    setStatus(dadosNFe.fornecedor ? 'Chave da NF-e válida. Fornecedor identificado. Toque em "Enviar dados".' : 'Chave da NF-e válida, mas o fornecedor não está mapeado. Toque em "Enviar dados".');
+    setStatus(fornecedorSelecionado ? 'Chave do CT-e/NF-e válida. Fornecedor preenchido pelo CNPJ. Toque em "Enviar dados".' : 'Chave do CT-e/NF-e válida, mas o fornecedor não está mapeado para este CNPJ. Toque em "Enviar dados".');
   } catch (error) {
     limparDadosNFe();
     readStatus.textContent = error.message;
