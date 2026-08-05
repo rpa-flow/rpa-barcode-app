@@ -2,6 +2,8 @@ const preview = document.getElementById('preview');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const sendBtn = document.getElementById('sendBtn');
+const manualCodeInput = document.getElementById('manualCodeInput');
+const manualCodeBtn = document.getElementById('manualCodeBtn');
 const installBtn = document.getElementById('installBtn');
 const placaInput = document.getElementById('placaInput');
 const cnpjInput = document.getElementById('cnpjInput');
@@ -421,13 +423,15 @@ async function sendCode() {
 }
 
 function onDetected(code) {
-  if (!code || code === currentCode) return;
+  const rawCode = String(code || '').trim();
+  if (!rawCode || rawCode === currentCode) return;
 
   try {
-    const dadosNFe = extrairDadosDaChaveNFe(code);
+    const dadosNFe = extrairDadosDaChaveNFe(rawCode);
     currentCode = dadosNFe.chave;
     currentNFeData = dadosNFe;
     lastCode.textContent = dadosNFe.chave;
+    manualCodeInput.value = dadosNFe.chave;
     cnpjInput.value = dadosNFe.cnpj;
     numeroNotaInput.value = dadosNFe.numeroNotaExibicao;
     fornecedorInput.value = appConfig.fornecedores.includes(dadosNFe.fornecedor) ? dadosNFe.fornecedor : '';
@@ -441,6 +445,19 @@ function onDetected(code) {
     setStatus(error.message);
     showFeedback(error.message, 'error');
   }
+}
+
+function useManualCode() {
+  const typedCode = manualCodeInput.value.trim();
+
+  if (!typedCode) {
+    readStatus.textContent = 'Digite uma chave da NF-e para usar o código manual.';
+    setStatus('Digite uma chave da NF-e para usar o código manual.');
+    showFeedback('Digite uma chave da NF-e para usar o código manual.', 'error');
+    return;
+  }
+
+  onDetected(typedCode);
 }
 
 async function scanLoop() {
@@ -560,6 +577,10 @@ historyList.addEventListener('click', (event) => {
 
 startBtn.addEventListener('click', startCamera);
 stopBtn.addEventListener('click', stopCamera);
+manualCodeBtn.addEventListener('click', useManualCode);
+manualCodeInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') useManualCode();
+});
 sendBtn.addEventListener('click', sendCode);
 
 scannerTabBtn.addEventListener('click', () => switchTab('scanner'));

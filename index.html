@@ -20,6 +20,13 @@
         <section class="panel action-panel">
           <button id="startBtn">Ler barcode</button>
           <button id="stopBtn" disabled>Parar câmera</button>
+          <div class="manual-code-field">
+            <label for="manualCodeInput">Código de barras manual</label>
+            <div class="manual-code-controls">
+              <input id="manualCodeInput" type="text" inputmode="numeric" autocomplete="off" placeholder="Digite a chave da NF-e" />
+              <button id="manualCodeBtn" type="button">Usar código</button>
+            </div>
+          </div>
           <p id="readStatus" class="read-status">Nenhuma leitura realizada.</p>
         </section>
 
